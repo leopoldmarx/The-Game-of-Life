@@ -12,6 +12,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
@@ -29,7 +30,10 @@ public class ViewMain extends Application {
 	private Canvas canvas = new Canvas();
 	private GraphicsContext gc;
 	
-	private Grid grid = new Grid(20, 20);
+	private Grid grid = new Grid(30, 20);
+	
+	private int oldX, oldY;
+	private boolean dragged = false;
 	
 	private static final int  FONTSIZE = 20;
 	private static final Font COMMONFONT = new  Font("Devanagari MT", FONTSIZE);
@@ -46,8 +50,8 @@ public class ViewMain extends Application {
 		window.setTitle("The Game of Life");
 		
 		window.widthProperty().addListener(e -> {
-			topHBox   .setSpacing((window.getWidth() - 750) / 5 + 20);
-			bottomHBox.setSpacing((window.getWidth() - 750) / 6 + 10);
+			topHBox   .setSpacing((window.getWidth() - 750) / 5 + 38);
+			bottomHBox.setSpacing((window.getWidth() - 750) / 6 + 13);
 		});
 		
 		//Top
@@ -55,22 +59,36 @@ public class ViewMain extends Application {
 		JFXButton stopButton  = new JFXButton("Stop");
 		JFXButton stepButton  = new JFXButton("Step");
 		
-		startButton.setOnAction(e -> {
-			grid.nextGeneration();
-			rePaint();
-		});
-		
 		startButton.setFont(COMMONFONT);
 		startButton.setPadding(new Insets(10));
 		startButton.setRipplerFill(Color.STEELBLUE);
 		
-		stopButton .setFont(COMMONFONT);
-		stopButton .setPadding(new Insets(10));
-		stopButton .setRipplerFill(Color.STEELBLUE);
+		startButton.setOnAction(e -> {
+			startButton.setDisable(true);
+			stepButton .setDisable(true);
+			stopButton .setDisable(false);
+			//TODO Add timed looping mechanism.
+		});
 		
-		stepButton .setFont(COMMONFONT);
-		stepButton .setPadding(new Insets(10));
-		stepButton .setRipplerFill(Color.STEELBLUE);
+		stopButton.setFont(COMMONFONT);
+		stopButton.setPadding(new Insets(10));
+		stopButton.setRipplerFill(Color.STEELBLUE);
+		stopButton.setDisable(true);
+		
+		stopButton.setOnAction(e -> {
+			stopButton .setDisable(true);
+			startButton.setDisable(false);
+			stepButton .setDisable(false);
+		});
+		
+		stepButton.setFont(COMMONFONT);
+		stepButton.setPadding(new Insets(10));
+		stepButton.setRipplerFill(Color.STEELBLUE);
+		
+		stepButton.setOnAction(e -> {
+			grid.nextGeneration();
+			rePaint();
+		});
 		
 		Label fpsLabel = new Label("FPS:");
 		fpsLabel.setFont(COMMONFONT);
@@ -87,8 +105,12 @@ public class ViewMain extends Application {
 		toroidalArrayCheckBox.setFont(COMMONFONT);
 		toroidalArrayCheckBox.setPadding(new Insets(10, 0, 0, 0));
 		toroidalArrayCheckBox.setStyle("-fx-padding: 8;");
+		
+		toroidalArrayCheckBox.setOnAction(e -> 
+				grid.setToroidalArray(
+						grid.isToroidalArray() ? false : true));
 
-		topHBox.setSpacing(20);
+		topHBox.setSpacing(38);
 		topHBox.setPadding(new Insets(10));
 		topHBox.getChildren().addAll(
 				startButton,
@@ -104,7 +126,7 @@ public class ViewMain extends Application {
 		resolutionLabel.setPadding(new Insets(7,0,0,10));
 		resolutionLabel.setPrefWidth(110);
 		
-		JFXSlider resolutionSlider = new JFXSlider(20, 100, 30);
+		JFXSlider resolutionSlider = new JFXSlider(10, 50, 25);
 		resolutionSlider.setStyle(
 				  "-fx-font: Devanagari MT;"
 				+ "-fx-font-size: 20;");
@@ -115,38 +137,54 @@ public class ViewMain extends Application {
 		widthLabel.setFont(COMMONFONT);
 		widthLabel.setPadding(new Insets(7,0,0,0));
 		
-		Spinner<Integer> widthSpinner = new Spinner<>(1, Double.MAX_VALUE, 20, 1);
+		SpinnerValueFactory svfW = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE);
+		svfW.setValue(20);
+		
+		Spinner<Integer> widthSpinner = new Spinner<>();
+		widthSpinner.setValueFactory(svfW);
 		widthSpinner.setStyle(
 				  "-fx-font: Devanagari MT;"
 				+ "-fx-font-size: 20;");
 		widthSpinner.setPrefWidth(100);
 		widthSpinner.setEditable(true);
+		
+		widthSpinner.setOnMouseClicked(e -> {
+			grid.setWidth(widthSpinner.getValue());
+		});
 
 		Label heightLabel = new Label("Height:");
 		heightLabel.setFont(COMMONFONT);
 		heightLabel.setPadding(new Insets(7,0,0,0));
 		heightLabel.setPrefWidth(70);
 		
-		Spinner<Integer> heightSpinner = new Spinner<>(1, Double.MAX_VALUE, 20, 1);
+		SpinnerValueFactory svfH = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE);
+		svfH.setValue(20);
+		
+		Spinner<Integer> heightSpinner = new Spinner<>();
+		heightSpinner.setValueFactory(svfH);
 		heightSpinner.setStyle(
 				  "-fx-font: Devanagari MT;"
 				+ "-fx-font-size: 20;");
 		heightSpinner.setPrefWidth(100);
 		heightSpinner.setEditable(true);
 		
+		heightSpinner.setOnMouseClicked(e -> {
+			grid.setHeight(heightSpinner.getValue());
+		});
+		
 		JFXButton refreshButton = new JFXButton("Refresh");
 		refreshButton.setFont(COMMONFONT);
 		refreshButton.setPadding(new Insets(7));
 		
 		refreshButton.setOnAction(e -> {
-			grid.setWidth(widthSpinner.getValue().intValue());
-			grid.setHeight(heightSpinner.getValue().intValue());
+			grid.setWidth(widthSpinner.getValue());
+			grid.setHeight(heightSpinner.getValue());
 			grid.setResolution((int)(resolutionSlider.getValue()));
+			rePaint();
 		});
 		
 		//Center
-		grid.addSquare( 1, 1);
-		System.out.println(grid.getValue(3, 1));
+		grid.addSquare(1, 1);
 		grid.addSquare(2, 2);
 		grid.addSquare(2, 3);
 		grid.addSquare(3, 1);
@@ -156,12 +194,39 @@ public class ViewMain extends Application {
 		rePaint();
 		
 		canvas.setOnMouseClicked(e -> {
-			int x = (int) (e.getX() / grid.getResolution());
-			int y = (int) (e.getY() / grid.getResolution());
-			System.out.println(x + " : " + y);
+			if (!dragged){
+				int x = (int) (e.getX() / grid.getResolution());
+				int y = (int) (e.getY() / grid.getResolution());
+				
+				if (grid.getValue(x, y))
+					grid.deleteSquare(x, y);
+				else
+					grid.addSquare(x, y);
+			}
+			dragged = false;
+			rePaint();
 		});
 		
-		bottomHBox.setSpacing(10);
+		canvas.setOnMouseDragged(e -> {
+			
+			dragged = true;
+			
+			int x = (int) (e.getX() / grid.getResolution());
+			int y = (int) (e.getY() / grid.getResolution());
+			
+			if (x != oldX || y != oldY){
+				if (grid.getValue(x, y))
+					grid.deleteSquare(x, y);
+				else
+					grid.addSquare(x, y);
+			}
+			
+			oldX = x;
+			oldY = y;
+			rePaint();
+		});
+		
+		bottomHBox.setSpacing(13);
 		bottomHBox.setPadding(new Insets(10));
 		bottomHBox.getChildren().addAll(
 				resolutionLabel,
@@ -186,8 +251,9 @@ public class ViewMain extends Application {
 		
 		canvas.setWidth (grid.getWidth()  * resolution);
 		canvas.setHeight(grid.getHeight() * resolution);
-		window.setWidth (grid.getWidth()  * resolution + 100);
-		window.setHeight(grid.getHeight() * resolution + 200);
+		window.setMinWidth ((grid.getWidth()  * resolution + 100) > 750 
+				? grid.getWidth() * resolution + 100 : 750);
+		window.setMinHeight(grid.getHeight() * resolution + 200);
 		
 		for (int y = 0; y < grid.getHeight(); y++){
 			for (int x = 0; x < grid.getWidth(); x++){
@@ -197,7 +263,7 @@ public class ViewMain extends Application {
 			}
 		}
 		
-		//Outline
+		//Grid
 		gc.setFill(Color.LIGHTGREY);
 		
 		for (int i = 1; i < grid.getWidth(); i++)
@@ -205,6 +271,8 @@ public class ViewMain extends Application {
 		
 		for (int i = 1; i < grid.getHeight(); i++)
 			gc.fillRect(0, i * resolution - .5, grid.getWidth() * resolution, 1);
+		
+		//Border
 		gc.fillRect(0, 0, 2, canvas.getHeight());
 		gc.fillRect(0, 0, canvas.getWidth(), 2);
 		gc.fillRect(0, canvas.getHeight() - 2, canvas.getWidth(), 2);

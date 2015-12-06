@@ -11,13 +11,15 @@ public class Grid {
 	private int resolution;
 	
 	private ArrayList<Square> array = new ArrayList<>();
+
+	private ArrayList<Square> nextArray = array;
 	
 	private boolean toroidalArray;
 	
 	public Grid(int x, int y) {
 		this.width  = x;
 		this.height = y;
-		this.resolution = 30;
+		this.resolution = 25;
 	}
 	
 	public void addSquare(int x, int y) {
@@ -62,6 +64,16 @@ public class Grid {
 			}
 	}
 	
+	public void deleteSquareFromNextArray(int x, int y) {
+		boolean contains = false;
+		for (int i = 0; i < nextArray.size() && !contains; i++)
+			if(nextArray.get(i).getX() == x 
+					&& nextArray.get(i).getY() == y) {
+				nextArray.remove(i);
+				contains = true;
+			}
+	}
+	
 	public boolean getValue(int x, int y) {
 		boolean contains = false;
 		for (int i = 0; i < array.size() && !contains; i++)
@@ -73,17 +85,17 @@ public class Grid {
 	
 	public void nextGeneration() {
 		
+		nextArray = (ArrayList<Square>) array.clone();
+		
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
 				
 				if (getValue(x, y)){
-					//System.out.println(x + " : " + y + " : " + !adjacentSquaresCount(new Square(x, y)));
 					if (!adjacentSquaresCount(new Square(x, y)))
-						deleteSquare(x, y);
+						deleteSquareFromNextArray(x, y);
 				}
 				
 				else {
-					//System.out.println(x + " : " + y + " : not");
 					int count = 0;
 					
 					int xLow, xHigh;
@@ -122,35 +134,46 @@ public class Grid {
 							xHigh = 1;
 						}
 					}
-					for (; yLow <= yHigh; yLow++) {
-						for (; xLow <= xHigh; xLow++) {
+					
+					for (int tempY = yLow; tempY <= yHigh; tempY++) {
+						for (int tempX = xLow; tempX <= xHigh; tempX++) {
 							
-							int xValue = x + xLow;
-							int yValue = y + yLow;
+							int xValue = x + tempX;
+							int yValue = y + tempY;
 							
-							if (toroidalArray){
-								if (xValue == -1) xValue = width - 1;
-								else if (xValue == width - 1) xValue = 0;
+							if (tempX + tempY != 0 || (tempX != 0 && tempY != 0)) {
+								if (toroidalArray){
+									if (xValue == -1) xValue = width - 1;
+									else if (xValue == width - 1) xValue = 0;
+									
+									if (yValue == -1) yValue = height - 1;
+									else if (yValue == height - 1) yValue = 0;
+								}
 								
-								if (yValue == -1) yValue = height - 1;
-								else if (yValue == height - 1) yValue = 0;
+								for (Square s : array)
+									if (s.getX() == xValue && s.getY() == yValue)
+										count++;
 							}
-							final int xFinal = xValue;
-							final int yFinal = yValue;
-							
-							for (Square s : array)
-								if (s.getX() == xFinal && s.getY() == yFinal)
-									count++;
 						}
 					}
 					
 					if (count == 3)
-						array.add(new Square(x, y));
+						nextArray.add(new Square(x, y));
 				}
 			}
 		}
+		
+		array = nextArray;
 	}
 	
+	public boolean isToroidalArray() {
+		return toroidalArray;
+	}
+
+	public void setToroidalArray(boolean toroidalArray) {
+		this.toroidalArray = toroidalArray;
+	}
+
 	private boolean adjacentSquaresCount(Square square) {
 		
 		int x = square.getX();
@@ -195,14 +218,11 @@ public class Grid {
 			}
 		}
 		for (int tempY = yLow; tempY <= yHigh; tempY++) {
-			//System.out.println("Test : " + yLow);
 			for (int tempX = xLow; tempX <= xHigh; tempX++) {
-				//System.out.println("Test2 : " + xLow);
 				int xValue = x + tempX;
 				int yValue = y + tempY;
 				
-				if (tempX != x && tempY != y) {
-					//System.out.println(x + " : " + y + " : " + xValue + " : " + yValue);
+				if (tempX + tempY != 0 || (tempX != 0 && tempY != 0)) {
 					if (toroidalArray) {
 						if (xValue == -1) xValue = width - 1;
 						else if (xValue == width - 1) xValue = 0;
@@ -210,21 +230,16 @@ public class Grid {
 						if (yValue == -1) yValue = height - 1;
 						else if (yValue == height - 1) yValue = 0;
 					}
-					System.out.println();
-					for (Square s : array){
-						System.out.println(s.getX() + " : " + s.getY() + " : " + xValue + " : " + yValue);
-						if (s.getX() == xValue && s.getY() == yValue){
+					
+					for (Square s : array)
+						if (s.getX() == xValue && s.getY() == yValue) 
 							count++;
-							System.out.println(xValue + " : " + yValue);
-						}
-					}
 				}
 			}
 		}
 		
-		System.out.println(x + " : " + y + " : " + count);
 		if      (count <  2 || count > 3) return false;
-		else /*if (count == 3 || count == 2)*/ return true;
+		else                              return true;
 	}
 	
 	public int getHeight() {
