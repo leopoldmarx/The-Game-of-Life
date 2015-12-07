@@ -1,5 +1,10 @@
 package com.leopoldmarx.thegameoflife.grid;
 
+/**
+ * Stores x and y values in a position of a grid
+ * 
+ * @author Leopold Marx
+ */
 public class Square {
 
 	private int x;
@@ -8,21 +13,6 @@ public class Square {
 	public Square(int x, int y) {
 		this.x = x;
 		this.y = y;
-	}
-
-	public void setPos(int x, int y) {
-		this.x = x;
-		this.y = y;
-	}
-	
-	@Override
-	public boolean equals(Object obj){
-		if (obj == this) return true;
-		if (!(obj instanceof Square)) return false;
-		
-		Square s = (Square) obj;
-		return Integer.compare(x, s.x) == 0
-				&& Integer.compare(y, s.y) == 0;
 	}
 	
 	public int getX() {
