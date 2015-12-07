@@ -212,11 +212,11 @@ public class ViewMain extends Application {
 				toroidalArrayCheckBox);
 		
 		//Center
-		grid.addSquare(1, 1);
-		grid.addSquare(2, 2);
 		grid.addSquare(2, 3);
 		grid.addSquare(3, 1);
 		grid.addSquare(3, 2);
+		grid.addSquare(1, 1);
+		grid.addSquare(2, 2);
 		
 		gc = canvas.getGraphicsContext2D();
 		rePaint();

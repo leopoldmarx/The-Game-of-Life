@@ -1,6 +1,7 @@
 package com.leopoldmarx.thegameoflife.grid;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Represents an entire Grid of the Game of Life.
@@ -34,13 +35,8 @@ public class Grid {
 	 * @param y Vertical value of where the Square would be stored.
 	 */
 	public void addSquare(int x, int y) {
-		boolean contains = false;
-		for (int i = 0; i < array.size() && !contains; i++)
-			if(array.get(i).getX() == x 
-					&& array.get(i).getY() == y)
-				contains = true;
-		
-		if (!contains)
+		Collections.sort(array);
+		if (Collections.binarySearch(array, new Square(x, y)) < 0)
 			array.add(new Square(x, y));
 	}
 	
@@ -51,13 +47,8 @@ public class Grid {
 	 * @param y Vertical value of where the Square would be stored.
 	 */
 	private void addSquareToNextArray(int x, int y) {
-		boolean contains = false;
-		for (int i = 0; i < nextArray.size() && !contains; i++)
-			if(nextArray.get(i).getX() == x 
-					&& nextArray.get(i).getY() == y)
-				contains = true;
-		
-		if (!contains)
+		Collections.sort(nextArray);
+		if (Collections.binarySearch(nextArray, new Square(x, y)) < 0)
 			nextArray.add(new Square(x, y));
 	}
 	
@@ -68,13 +59,10 @@ public class Grid {
 	 * @param y Vertical value of where the Square would be deleted.
 	 */
 	public void deleteSquare(int x, int y) {
-		boolean complete = false;
-		for (int i = 0; i < array.size() && !complete; i++)
-			if(array.get(i).getX() == x 
-					&& array.get(i).getY() == y) {
-				array.remove(i);
-				complete = true;
-			}
+		Collections.sort(array);
+		int i = Collections.binarySearch(array, new Square(x, y));
+		if (i >= 0) 
+			array.remove(i);
 	}
 	
 	/**
@@ -84,13 +72,10 @@ public class Grid {
 	 * @param y Vertical value of where the Square would be deleted.
 	 */
 	private void deleteSquareFromNextArray(int x, int y) {
-		boolean contains = false;
-		for (int i = 0; i < nextArray.size() && !contains; i++)
-			if(nextArray.get(i).getX() == x 
-					&& nextArray.get(i).getY() == y) {
-				nextArray.remove(i);
-				contains = true;
-			}
+		Collections.sort(nextArray);
+		int i = Collections.binarySearch(nextArray, new Square(x, y));
+		if (i >= 0) 
+			nextArray.remove(i);
 	}
 	
 	/**
@@ -101,18 +86,20 @@ public class Grid {
 	 * @return if there is a Square at x and y
 	 */
 	public boolean getValue(int x, int y) {
-		for (int i = 0; i < array.size(); i++)
-			if (array.get(i).getX() == x 
-					&& array.get(i).getY() == y)
-				return true;
-		
+		Collections.sort(array);
+		if (Collections.binarySearch(array, new Square(x, y)) > 0)
+			return true;
 		return false;
 	}
 	
 	/**
 	 * Generates next frame for the Game of Life.
 	 */
+	@SuppressWarnings("unchecked")
 	public void nextGeneration() {
+		
+		//Sorts the array before hand so both array and nextArray are sorted
+		Collections.sort(array);
 		
 		//Clones  array  to nextArray to  not confuse  next
 		//generation's values with this generation's values
@@ -176,7 +163,7 @@ public class Grid {
 						if (tempX + tempY != 0 || (tempX != 0 && tempY != 0)) {
 							
 							//Wraps the position to the other side
-							//if out  of bounds  if  toroidalArray
+							//if out  of bounds  if  toroidalArrayI
 							if (toroidalArray) {
 								if (xValue == -1) xValue = width - 1;
 								else if (xValue == width) xValue = 0;
@@ -185,10 +172,9 @@ public class Grid {
 								else if (yValue == height) yValue = 0;
 							}
 							
-							//Searches if the square exists in the array 
-							for (Square s : array)
-								if (s.getX() == xValue && s.getY() == yValue)
-									count++;
+							//Searches if the square exists in the array
+							int value = Collections.binarySearch(array, new Square(xValue, yValue));
+							if (value >= 0) count++;
 						}
 					}
 				}
@@ -205,7 +191,7 @@ public class Grid {
 		
 		array = nextArray;
 	}
-
+	
 	public boolean isToroidalArray() {
 		return toroidalArray;
 	}

@@ -5,7 +5,7 @@ package com.leopoldmarx.thegameoflife.grid;
  * 
  * @author Leopold Marx
  */
-public class Square {
+public class Square implements Comparable<Square> {
 
 	private int x;
 	private int y;
@@ -29,5 +29,20 @@ public class Square {
 
 	public void setY(int yPosition) {
 		this.y = yPosition;
+	}
+
+	@Override
+	public int compareTo(Square s) {
+		if (this.getX() < s.getX())
+			return -1;
+		else if (this.getX() > s.getX())
+			return 1;
+		else {
+			if (this.getY() < s.getY())
+				return -1;
+			else if (this.getY() > s.getY())
+				return 1;
+			else return 0;
+		}
 	}
 }
