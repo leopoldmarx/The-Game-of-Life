@@ -6,6 +6,8 @@ import com.jfoenix.controls.JFXSlider;
 import com.jfoenix.controls.JFXSlider.IndicatorPosition;
 import com.leopoldmarx.thegameoflife.grid.Grid;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -14,11 +16,16 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.effect.BlendMode;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 /**
  * Is the main application of the entire program.
@@ -41,6 +48,9 @@ public class ViewMain extends Application {
 	private int oldX, oldY;
 	private boolean dragged = false;
 	
+	private Timeline timeline;
+	private Integer totalGenerations = 0;
+	
 	private static final int  FONTSIZE = 20;
 	private static final Font COMMONFONT = new  Font("Devanagari MT", FONTSIZE);
 	
@@ -57,7 +67,7 @@ public class ViewMain extends Application {
 		
 		window.widthProperty().addListener(e -> {
 			topHBox   .setSpacing((window.getWidth() - 750) / 6 + 13);
-			bottomHBox.setSpacing((window.getWidth() - 750) / 5 + 38);
+			bottomHBox.setSpacing((window.getWidth() - 750) / 6 + 29);
 		});
 
 		
@@ -73,7 +83,8 @@ public class ViewMain extends Application {
 		JFXButton stopButton  = new JFXButton("Stop");
 		JFXButton stepButton  = new JFXButton("Step");
 		Label fpsLabel = new Label("FPS:");
-		Spinner<Integer> fpsSpinner = new Spinner<>(1, Double.MAX_VALUE, 20, 1);
+		Spinner<Integer> fpsSpinner = new Spinner<>();
+		Label totalGenerationsLabel = new Label (totalGenerations.toString());
 		JFXCheckBox toroidalArrayCheckBox = new JFXCheckBox("Toroidal Array");
 		
 		//Top
@@ -91,7 +102,8 @@ public class ViewMain extends Application {
 		widthLabel.setFont(COMMONFONT);
 		widthLabel.setPadding(new Insets(7,0,0,0));
 		
-		SpinnerValueFactory svfW = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE);
+		SpinnerValueFactory svfW = new SpinnerValueFactory
+				.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE);
 		svfW.setValue(30);
 		
 		widthSpinner.setValueFactory(svfW);
@@ -109,7 +121,8 @@ public class ViewMain extends Application {
 		heightLabel.setPadding(new Insets(7,0,0,0));
 		heightLabel.setPrefWidth(70);
 		
-		SpinnerValueFactory svfH = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE);
+		SpinnerValueFactory svfH = new SpinnerValueFactory
+				.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE);
 		svfH.setValue(20);
 		
 		heightSpinner.setValueFactory(svfH);
@@ -150,14 +163,31 @@ public class ViewMain extends Application {
 		startButton.setRipplerFill(Color.STEELBLUE);
 		
 		startButton.setOnAction(e -> {
-			startButton.setDisable(true);
-			stepButton .setDisable(true);
-			stopButton .setDisable(false);
-			resolutionSlider.setDisable(true);
-			widthSpinner.setDisable(true);
-			heightSpinner.setDisable(true);
+			startButton          .setDisable(true);
+			stepButton           .setDisable(true);
+			stopButton           .setDisable(false);
+			resolutionSlider     .setDisable(true);
+			widthSpinner         .setDisable(true);
+			heightSpinner        .setDisable(true);
 			toroidalArrayCheckBox.setDisable(true);
-			//TODO Add timed looping mechanism.
+			fpsSpinner           .setDisable(true);
+			refreshButton        .setDisable(true);
+			
+			if (timeline != null) timeline.stop();
+			
+			timeline = new Timeline();
+			timeline.setCycleCount(Timeline.INDEFINITE);
+			timeline.getKeyFrames().add(
+					new KeyFrame(Duration.millis(
+							1000 / fpsSpinner.getValue()), e1 -> {
+								totalGenerationsLabel.setText(
+										totalGenerations.toString());
+								totalGenerations++;
+								grid.nextGeneration();
+								rePaint();
+					})
+			);
+			timeline.playFromStart();
 		});
 		
 		stopButton.setFont(COMMONFONT);
@@ -166,13 +196,17 @@ public class ViewMain extends Application {
 		stopButton.setDisable(true);
 		
 		stopButton.setOnAction(e -> {
-			stopButton .setDisable(true);
-			startButton.setDisable(false);
-			stepButton .setDisable(false);
-			resolutionSlider.setDisable(false);
-			widthSpinner.setDisable(false);
-			heightSpinner.setDisable(false);
+			stopButton           .setDisable(true);
+			startButton          .setDisable(false);
+			stepButton           .setDisable(false);
+			resolutionSlider     .setDisable(false);
+			widthSpinner         .setDisable(false);
+			heightSpinner        .setDisable(false);
 			toroidalArrayCheckBox.setDisable(false);
+			fpsSpinner           .setDisable(false);
+			refreshButton        .setDisable(false);
+			
+			timeline.stop();
 		});
 		
 		stepButton.setFont(COMMONFONT);
@@ -180,6 +214,9 @@ public class ViewMain extends Application {
 		stepButton.setRipplerFill(Color.STEELBLUE);
 		
 		stepButton.setOnAction(e -> {
+			totalGenerations++;
+			totalGenerationsLabel.setText(
+					totalGenerations.toString());
 			grid.nextGeneration();
 			rePaint();
 		});
@@ -187,11 +224,19 @@ public class ViewMain extends Application {
 		fpsLabel.setFont(COMMONFONT);
 		fpsLabel.setPadding(new Insets(10, -5, 0, 10));
 		
+		SpinnerValueFactory svfFPS = new SpinnerValueFactory
+				.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE);
+		svfFPS.setValue(5);
+		
+		fpsSpinner.setValueFactory(svfFPS);
 		fpsSpinner.setStyle(
 				  "-fx-font: Devanagari MT;"
 				+ "-fx-font-size: 20;");
 		fpsSpinner.setPrefWidth(100);
 		fpsSpinner.setEditable(true);
+		
+		totalGenerationsLabel.setFont(COMMONFONT);
+		totalGenerationsLabel.setPadding(new Insets(7, 0, 0, 0));
 		
 		toroidalArrayCheckBox.setFont(COMMONFONT);
 		toroidalArrayCheckBox.setPadding(new Insets(10, 0, 0, 0));
@@ -209,6 +254,7 @@ public class ViewMain extends Application {
 				stepButton,
 				fpsLabel,
 				fpsSpinner,
+				totalGenerationsLabel,
 				toroidalArrayCheckBox);
 		
 		//Center
@@ -236,7 +282,6 @@ public class ViewMain extends Application {
 		});
 		
 		canvas.setOnMouseDragged(e -> {
-			
 			dragged = true;
 			
 			int x = (int) (e.getX() / grid.getResolution());
@@ -276,7 +321,7 @@ public class ViewMain extends Application {
 		window.setMinHeight(grid.getHeight() * resolution + 200);
 		
 		topHBox   .setSpacing((window.getWidth() - 750) / 6 + 13);
-		bottomHBox.setSpacing((window.getWidth() - 750) / 5 + 38);
+		bottomHBox.setSpacing((window.getWidth() - 750) / 6 + 29);
 		
 		for (int y = 0; y < grid.getHeight(); y++){
 			for (int x = 0; x < grid.getWidth(); x++){

@@ -87,7 +87,7 @@ public class Grid {
 	 */
 	public boolean getValue(int x, int y) {
 		Collections.sort(array);
-		if (Collections.binarySearch(array, new Square(x, y)) > 0)
+		if (Collections.binarySearch(array, new Square(x, y)) >= 0)
 			return true;
 		return false;
 	}
@@ -163,7 +163,7 @@ public class Grid {
 						if (tempX + tempY != 0 || (tempX != 0 && tempY != 0)) {
 							
 							//Wraps the position to the other side
-							//if out  of bounds  if  toroidalArrayI
+							//if out  of bounds  if  toroidalArray
 							if (toroidalArray) {
 								if (xValue == -1) xValue = width - 1;
 								else if (xValue == width) xValue = 0;
