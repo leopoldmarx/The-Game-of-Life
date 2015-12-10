@@ -21,10 +21,17 @@ public class Grid {
 	
 	private boolean toroidalArray;
 	
+	public Grid() {
+		width = 0;
+		height = 0;
+		resolution = 20;
+		toroidalArray = false;
+	}
+	
 	public Grid(int x, int y) {
 		this.width  = x;
 		this.height = y;
-		this.resolution = 25;
+		this.resolution = 20;
 		this.toroidalArray = false;
 	}
 	
@@ -92,6 +99,14 @@ public class Grid {
 		return false;
 	}
 	
+	public ArrayList<Square> getArray() {
+		return array;
+	}
+
+	public void setArray(ArrayList<Square> array) {
+		this.array = array;
+	}
+
 	/**
 	 * Generates next frame for the Game of Life.
 	 */
@@ -190,6 +205,92 @@ public class Grid {
 		}
 		
 		array = nextArray;
+	}
+	
+	public static Grid glider() {
+		Grid g = new Grid(3, 3);
+		
+		g.addSquare(0, 0);
+		g.addSquare(2, 0);
+		g.addSquare(1, 1);
+		g.addSquare(2, 1);
+		g.addSquare(1, 2);
+		
+		return g;
+	}
+	
+	public static Grid lightweightSpaceship() {
+		Grid g = new Grid(5, 4);
+		
+		g.addSquare(1, 0);
+		g.addSquare(2, 0);
+		g.addSquare(3, 0);
+		g.addSquare(4, 0);
+		g.addSquare(0, 1);
+		g.addSquare(4, 1);
+		g.addSquare(4, 2);
+		g.addSquare(0, 3);
+		g.addSquare(3, 3);
+		
+		return g;
+	}
+	
+	public static Grid gospersGliderGun() {
+		Grid g = new Grid(36, 9);
+		
+		g.addSquare(0, 4);
+		g.addSquare(0, 5);
+		g.addSquare(1, 4);
+		g.addSquare(1, 5);
+		
+		g.addSquare(10, 4);
+		g.addSquare(10, 5);
+		g.addSquare(10, 6);
+		g.addSquare(11, 3);
+		g.addSquare(11, 7);
+		g.addSquare(12, 2);
+		g.addSquare(13, 2);
+		g.addSquare(12, 8);
+		g.addSquare(13, 8);
+		
+		g.addSquare(14, 5);
+		g.addSquare(15, 3);
+		g.addSquare(15, 7);
+		g.addSquare(16, 4);
+		g.addSquare(16, 5);
+		g.addSquare(16, 6);
+		g.addSquare(17, 5);
+		
+		g.addSquare(20, 2);
+		g.addSquare(20, 3);
+		g.addSquare(20, 4);
+		g.addSquare(21, 2);
+		g.addSquare(21, 3);
+		g.addSquare(21, 4);
+		g.addSquare(22, 1);
+		g.addSquare(22, 5);
+		
+		g.addSquare(24, 0);
+		g.addSquare(24, 1);
+		
+		g.addSquare(24, 5);
+		g.addSquare(24, 6);
+		
+		g.addSquare(34, 2);
+		g.addSquare(34, 3);
+		g.addSquare(35, 2);
+		g.addSquare(35, 3);
+		
+		return g;
+	}
+	
+	public void rotate() {
+		Grid g = new Grid(this.height, this.width);
+		for (Square s : this.getArray())
+			g.addSquare(s.getY(), this.width - 1 - s.getX());
+		this.setArray(g.getArray());
+		this.setWidth(g.getWidth());
+		this.setHeight(g.getHeight());
 	}
 	
 	public boolean isToroidalArray() {

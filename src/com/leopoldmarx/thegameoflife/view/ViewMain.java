@@ -5,6 +5,7 @@ import com.jfoenix.controls.JFXCheckBox;
 import com.jfoenix.controls.JFXSlider;
 import com.jfoenix.controls.JFXSlider.IndicatorPosition;
 import com.leopoldmarx.thegameoflife.grid.Grid;
+import com.leopoldmarx.thegameoflife.grid.Square;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -14,16 +15,16 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
-import javafx.scene.effect.BlendMode;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -35,6 +36,7 @@ import javafx.util.Duration;
 public class ViewMain extends Application {
 
 	private Stage window;
+	private BorderPane borderPane = new BorderPane();
 	private BorderPane mainBorderPane = new BorderPane();
 	
 	private HBox topHBox = new HBox();
@@ -43,7 +45,9 @@ public class ViewMain extends Application {
 	private Canvas canvas = new Canvas();
 	private GraphicsContext gc;
 	
-	private Grid grid = new Grid(30, 20);
+	private Grid grid = new Grid(50, 25);
+	private Grid hoverGrid = null;
+	private double mouseX, mouseY;
 	
 	private int oldX, oldY;
 	private boolean dragged = false;
@@ -67,12 +71,12 @@ public class ViewMain extends Application {
 		
 		window.widthProperty().addListener(e -> {
 			topHBox   .setSpacing((window.getWidth() - 750) / 6 + 13);
-			bottomHBox.setSpacing((window.getWidth() - 750) / 6 + 29);
+			bottomHBox.setSpacing((window.getWidth() - 750) / 7 + 10);
 		});
 
 		
 		Label resolutionLabel = new Label("Resolution:");
-		JFXSlider resolutionSlider = new JFXSlider(10, 50, 25);
+		JFXSlider resolutionSlider = new JFXSlider(10, 50, 20);
 		Label widthLabel = new Label("Width:");
 		Spinner<Integer> widthSpinner = new Spinner<>();
 		Label heightLabel = new Label("Height:");
@@ -82,6 +86,7 @@ public class ViewMain extends Application {
 		JFXButton startButton = new JFXButton("Start");
 		JFXButton stopButton  = new JFXButton("Stop");
 		JFXButton stepButton  = new JFXButton("Step");
+		JFXButton clearButton = new JFXButton("Clear");
 		Label fpsLabel = new Label("FPS:");
 		Spinner<Integer> fpsSpinner = new Spinner<>();
 		Label totalGenerationsLabel = new Label (totalGenerations.toString());
@@ -166,6 +171,7 @@ public class ViewMain extends Application {
 			startButton          .setDisable(true);
 			stepButton           .setDisable(true);
 			stopButton           .setDisable(false);
+			clearButton          .setDisable(true);
 			resolutionSlider     .setDisable(true);
 			widthSpinner         .setDisable(true);
 			heightSpinner        .setDisable(true);
@@ -199,6 +205,7 @@ public class ViewMain extends Application {
 			stopButton           .setDisable(true);
 			startButton          .setDisable(false);
 			stepButton           .setDisable(false);
+			clearButton          .setDisable(false);
 			resolutionSlider     .setDisable(false);
 			widthSpinner         .setDisable(false);
 			heightSpinner        .setDisable(false);
@@ -221,6 +228,18 @@ public class ViewMain extends Application {
 			rePaint();
 		});
 		
+		clearButton.setFont(COMMONFONT);
+		clearButton.setPadding(new Insets(10));
+		clearButton.setRipplerFill(Color.STEELBLUE);
+		
+		clearButton.setOnAction(e -> {
+			grid.getArray().clear();
+			totalGenerations = 0;
+			totalGenerationsLabel.setText(totalGenerations.toString());
+			
+			rePaint();
+		});
+		
 		fpsLabel.setFont(COMMONFONT);
 		fpsLabel.setPadding(new Insets(10, -5, 0, 10));
 		
@@ -236,7 +255,7 @@ public class ViewMain extends Application {
 		fpsSpinner.setEditable(true);
 		
 		totalGenerationsLabel.setFont(COMMONFONT);
-		totalGenerationsLabel.setPadding(new Insets(7, 0, 0, 0));
+		totalGenerationsLabel.setPadding(new Insets(7, 0, 0, 10));
 		
 		toroidalArrayCheckBox.setFont(COMMONFONT);
 		toroidalArrayCheckBox.setPadding(new Insets(10, 0, 0, 0));
@@ -252,58 +271,148 @@ public class ViewMain extends Application {
 				startButton,
 				stopButton,
 				stepButton,
+				clearButton,
 				fpsLabel,
 				fpsSpinner,
 				totalGenerationsLabel,
 				toroidalArrayCheckBox);
 		
 		//Center
-		grid.addSquare(2, 3);
-		grid.addSquare(3, 1);
-		grid.addSquare(3, 2);
-		grid.addSquare(1, 1);
-		grid.addSquare(2, 2);
-		
 		gc = canvas.getGraphicsContext2D();
 		rePaint();
 		
-		canvas.setOnMouseClicked(e -> {
-			if (!dragged){
-				int x = (int) (e.getX() / grid.getResolution());
-				int y = (int) (e.getY() / grid.getResolution());
+		canvas.setOnMouseMoved(e -> {
+			if (hoverGrid != null) {
+				mouseX = e.getX();
+				mouseY = e.getY();
 				
-				if (grid.getValue(x, y))
-					grid.deleteSquare(x, y);
-				else
-					grid.addSquare(x, y);
+				rePaint();
 			}
-			dragged = false;
-			rePaint();
+		});
+		
+		canvas.setOnMouseClicked(e -> {
+			if (hoverGrid != null) {
+				if (e.getButton().toString().equals("PRIMARY")){
+					for (Square s : hoverGrid.getArray()) 
+						grid.addSquare(
+								(int) (s.getX() + mouseX / grid.getResolution()),
+								(int) (s.getY() + mouseY / grid.getResolution()));
+					
+					hoverGrid = null;
+				}
+				else 
+					hoverGrid.rotate();
+				
+				rePaint();
+			}
+			else {
+				if (e.getButton().toString().equals("PRIMARY")) {
+					if (!dragged){
+						int x = (int) (e.getX() / grid.getResolution());
+						int y = (int) (e.getY() / grid.getResolution());
+						
+						if (grid.getValue(x, y))
+							grid.deleteSquare(x, y);
+						else
+							grid.addSquare(x, y);
+					}
+					dragged = false;
+					rePaint();
+				}
+			}
 		});
 		
 		canvas.setOnMouseDragged(e -> {
-			dragged = true;
-			
-			int x = (int) (e.getX() / grid.getResolution());
-			int y = (int) (e.getY() / grid.getResolution());
-			
-			if (x != oldX || y != oldY){
-				if (grid.getValue(x, y))
-					grid.deleteSquare(x, y);
-				else
-					grid.addSquare(x, y);
+			if (e.getButton().toString().equals("PRIMARY")) {
+				dragged = true;
+				
+				int x = (int) (e.getX() / grid.getResolution());
+				int y = (int) (e.getY() / grid.getResolution());
+				
+				if (x != oldX || y != oldY){
+					if (grid.getValue(x, y))
+						grid.deleteSquare(x, y);
+					else
+						grid.addSquare(x, y);
+				}
+				
+				oldX = x;
+				oldY = y;
+				rePaint();
 			}
-			
-			oldX = x;
-			oldY = y;
-			rePaint();
 		});
+		
+		//Menu Bar
+		final Menu fileMenu = new Menu("_File");
+		
+		MenuItem newMenuItem      = new MenuItem("_New");
+		MenuItem openFileMenuItem = new MenuItem("_Open File...");
+		MenuItem saveMenuItem     = new MenuItem("_Save");
+		MenuItem saveAsMenuItem   = new MenuItem("Save _As...");
+		
+		fileMenu.getItems().addAll(
+				newMenuItem,
+				openFileMenuItem,
+				new SeparatorMenuItem(),
+				saveMenuItem,
+				saveAsMenuItem);
+		
+		final Menu optionsMenu = new Menu("_Options");
+		
+		MenuItem preferencesMenuItem = new MenuItem("_Preferences...");
+		
+		optionsMenu.getItems().add(
+				preferencesMenuItem);
+		
+		final Menu insertMenu = new Menu("_Insert");
+		
+		MenuItem gliderMenuItem = new MenuItem("_Glider");
+		MenuItem gospersGliderGunMenuItem = new MenuItem("G_osper's Glider Gun");
+		MenuItem lightweightSpaceshipMenuItem = new MenuItem("_Lightweight Spaceship");
+		
+		gliderMenuItem.setOnAction(e -> 
+				hoverGrid = Grid.glider());
+		
+		gospersGliderGunMenuItem.setOnAction(e -> 
+				hoverGrid = Grid.gospersGliderGun());
+		
+		lightweightSpaceshipMenuItem.setOnAction(e -> 
+				hoverGrid = Grid.lightweightSpaceship());
+		
+		insertMenu.getItems().addAll(
+				gliderMenuItem,
+				gospersGliderGunMenuItem,
+				lightweightSpaceshipMenuItem);
+		
+		final Menu helpMenu = new Menu("_Help");
+		
+		MenuItem introductionMenuItem = new MenuItem("_Introduction...");
+		MenuItem examplesMenuItem = new MenuItem("_Exaples...");
+		MenuItem rulesMenuItem = new MenuItem("_Rules...");
+		
+		helpMenu.getItems().addAll(
+				introductionMenuItem,
+				examplesMenuItem,
+				rulesMenuItem);
+		
+		MenuBar menuBar = new MenuBar();
+		menuBar.setStyle("-fx-background-color: Whitesmoke;"
+				+ "-fx-font: Devanagari MT;"
+				+ "-fx-font-size: 16;");
+		menuBar.getMenus().addAll(
+				fileMenu,
+				optionsMenu,
+				insertMenu,
+				helpMenu);
 		
 		mainBorderPane.setTop(topHBox);
 		mainBorderPane.setCenter(canvas);
 		mainBorderPane.setBottom(bottomHBox);
 		
-		Scene scene = new Scene(mainBorderPane);
+		borderPane.setTop(menuBar);
+		borderPane.setCenter(mainBorderPane);
+		
+		Scene scene = new Scene(borderPane);
 		window.setScene(scene);
 		window.show();
 	}
@@ -318,16 +427,33 @@ public class ViewMain extends Application {
 		canvas.setHeight(grid.getHeight() * resolution);
 		window.setMinWidth ((grid.getWidth()  * resolution + 100) > 750 
 				? grid.getWidth() * resolution + 100 : 750);
-		window.setMinHeight(grid.getHeight() * resolution + 200);
+		window.setMinHeight(grid.getHeight() * resolution + 210);
 		
 		topHBox   .setSpacing((window.getWidth() - 750) / 6 + 13);
-		bottomHBox.setSpacing((window.getWidth() - 750) / 6 + 29);
+		bottomHBox.setSpacing((window.getWidth() - 750) / 7 + 10);
 		
+		gc.setFill(Color.WHITESMOKE);
+		gc.fillRect(0, 0, grid.getWidth() * resolution, grid.getHeight() * resolution);
+		
+		gc.setFill(Color.BLACK);
 		for (int y = 0; y < grid.getHeight(); y++){
 			for (int x = 0; x < grid.getWidth(); x++){
-				if (grid.getValue(x, y)) gc.setFill(Color.BLACK);
-				else                     gc.setFill(Color.WHITESMOKE);
-				gc.fillRect(x * resolution, y * resolution, resolution, resolution);
+				if (grid.getValue(x, y))
+					gc.fillRect(x * resolution, y * resolution, resolution, resolution);
+			}
+		}
+		
+		if (hoverGrid != null) {
+			int x = (int) (mouseX / resolution);
+			int y = (int) (mouseY / resolution);
+			
+			for (int i = 0; i < hoverGrid.getHeight(); i++) {
+				for (int j = 0; j < hoverGrid.getWidth(); j++) {
+					if (hoverGrid.getValue(j, i)) {
+						gc.setFill(Color.GREY);
+						gc.fillRect((j + x) * resolution, (i + y) * resolution, resolution, resolution);
+					}
+				}
 			}
 		}
 		
