@@ -1,9 +1,12 @@
 package com.leopoldmarx.thegameoflife.view;
 
+import java.io.File;
+
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXCheckBox;
 import com.jfoenix.controls.JFXSlider;
 import com.jfoenix.controls.JFXSlider.IndicatorPosition;
+import com.leopoldmarx.thegameoflife.file.FileManager;
 import com.leopoldmarx.thegameoflife.grid.Grid;
 import com.leopoldmarx.thegameoflife.grid.Square;
 
@@ -25,6 +28,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -38,6 +42,9 @@ public class ViewMain extends Application {
 	private Stage window;
 	private BorderPane borderPane = new BorderPane();
 	private BorderPane mainBorderPane = new BorderPane();
+	
+	private FileManager fileManager = new FileManager();
+	private File location;
 	
 	private HBox topHBox = new HBox();
 	private HBox bottomHBox = new HBox();
@@ -53,7 +60,8 @@ public class ViewMain extends Application {
 	private boolean dragged = false;
 	
 	private Timeline timeline;
-	private Integer totalGenerations = 0;
+	
+	private FileChooser fileChooser = new FileChooser();
 	
 	private static final int  FONTSIZE = 20;
 	private static final Font COMMONFONT = new  Font("Devanagari MT", FONTSIZE);
@@ -74,7 +82,12 @@ public class ViewMain extends Application {
 			bottomHBox.setSpacing((window.getWidth() - 750) / 7 + 10);
 		});
 
+		fileChooser.getExtensionFilters().add(
+				new FileChooser.ExtensionFilter(
+						"The Game of Life Files (.tgol)",
+						"*.tgol"));
 		
+		//Top
 		Label resolutionLabel = new Label("Resolution:");
 		JFXSlider resolutionSlider = new JFXSlider(10, 50, 20);
 		Label widthLabel = new Label("Width:");
@@ -83,14 +96,42 @@ public class ViewMain extends Application {
 		Spinner<Integer> heightSpinner = new Spinner<>();
 		JFXButton refreshButton = new JFXButton("Refresh");
 
+		//Bottom
 		JFXButton startButton = new JFXButton("Start");
 		JFXButton stopButton  = new JFXButton("Stop");
 		JFXButton stepButton  = new JFXButton("Step");
 		JFXButton clearButton = new JFXButton("Clear");
 		Label fpsLabel = new Label("FPS:");
 		Spinner<Integer> fpsSpinner = new Spinner<>();
-		Label totalGenerationsLabel = new Label (totalGenerations.toString());
+		Label totalGenerationsLabel = new Label(grid.getGenerations().toString());
 		JFXCheckBox toroidalArrayCheckBox = new JFXCheckBox("Toroidal Array");
+		
+		//Menus
+		final Menu fileMenu = new Menu("_File");
+		
+		MenuItem newMenuItem      = new MenuItem("_New");
+		MenuItem openFileMenuItem = new MenuItem("_Open File...");
+		MenuItem saveMenuItem     = new MenuItem("_Save");
+		MenuItem saveAsMenuItem   = new MenuItem("Save _As...");
+		
+		final Menu insertMenu = new Menu("_Insert");
+		
+		MenuItem gliderMenuItem = new MenuItem("_Glider");
+		MenuItem gospersGliderGunMenuItem = new MenuItem("G_osper's Glider Gun");
+		MenuItem lightweightSpaceshipMenuItem = new MenuItem("_Lightweight Spaceship");
+		MenuItem beehiveMenuItem = new MenuItem("_Beehive");
+		MenuItem blinkerMenuItem = new MenuItem("Bl_inker");
+		MenuItem toadMenuItem = new MenuItem("_Toad");
+		MenuItem beaconMenuItem = new MenuItem("Be_acon");
+		MenuItem pulsarMenuItem = new MenuItem("_Pulsar");
+		
+		final Menu helpMenu = new Menu("_Help");
+		
+		MenuItem introductionMenuItem = new MenuItem("_Introduction...");
+		MenuItem examplesMenuItem = new MenuItem("_Exaples...");
+		MenuItem rulesMenuItem = new MenuItem("_Rules...");
+		
+		MenuBar menuBar = new MenuBar();
 		
 		//Top
 		resolutionLabel.setFont(COMMONFONT);
@@ -104,12 +145,17 @@ public class ViewMain extends Application {
 		resolutionSlider.setPadding(new Insets(17,0,0,0));
 		resolutionSlider.setIndicatorPosition(IndicatorPosition.RIGHT);
 		
+		resolutionSlider.setOnMouseDragReleased(e -> {
+			grid.setResolution((int)(resolutionSlider.getValue()));
+			rePaint();
+		});
+		
 		widthLabel.setFont(COMMONFONT);
 		widthLabel.setPadding(new Insets(7,0,0,0));
 		
 		SpinnerValueFactory svfW = new SpinnerValueFactory
 				.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE);
-		svfW.setValue(30);
+		svfW.setValue(50);
 		
 		widthSpinner.setValueFactory(svfW);
 		widthSpinner.setStyle(
@@ -118,9 +164,8 @@ public class ViewMain extends Application {
 		widthSpinner.setPrefWidth(100);
 		widthSpinner.setEditable(true);
 		
-		widthSpinner.setOnMouseClicked(e -> {
-			grid.setWidth(widthSpinner.getValue());
-		});
+		widthSpinner.widthProperty().addListener(e ->
+					grid.setWidth(widthSpinner.getValue()));
 		
 		heightLabel.setFont(COMMONFONT);
 		heightLabel.setPadding(new Insets(7,0,0,0));
@@ -128,7 +173,7 @@ public class ViewMain extends Application {
 		
 		SpinnerValueFactory svfH = new SpinnerValueFactory
 				.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE);
-		svfH.setValue(20);
+		svfH.setValue(25);
 		
 		heightSpinner.setValueFactory(svfH);
 		heightSpinner.setStyle(
@@ -137,22 +182,21 @@ public class ViewMain extends Application {
 		heightSpinner.setPrefWidth(100);
 		heightSpinner.setEditable(true);
 		
-		heightSpinner.setOnMouseClicked(e -> {
-			grid.setHeight(heightSpinner.getValue());
-		});
+		heightSpinner.widthProperty().addListener(e ->
+				grid.setHeight(heightSpinner.getValue()));
 		
 		refreshButton.setFont(COMMONFONT);
 		refreshButton.setPadding(new Insets(7));
+		refreshButton.setRipplerFill(Color.CADETBLUE);
 		
 		refreshButton.setOnAction(e -> {
 			grid.setWidth(widthSpinner.getValue());
 			grid.setHeight(heightSpinner.getValue());
-			grid.setResolution((int)(resolutionSlider.getValue()));
 			rePaint();
 		});
 		
 		topHBox.setSpacing(13);
-		topHBox.setPadding(new Insets(10));
+		topHBox.setPadding(new Insets(0, 10, 10, 10));
 		topHBox.getChildren().addAll(
 				resolutionLabel,
 				resolutionSlider,
@@ -165,13 +209,14 @@ public class ViewMain extends Application {
 		//Bottom
 		startButton.setFont(COMMONFONT);
 		startButton.setPadding(new Insets(10));
-		startButton.setRipplerFill(Color.STEELBLUE);
+		startButton.setRipplerFill(Color.GREEN);
 		
 		startButton.setOnAction(e -> {
+			insertMenu.setDisable(true);
+			fileMenu.setDisable(true);
 			startButton          .setDisable(true);
 			stepButton           .setDisable(true);
 			stopButton           .setDisable(false);
-			clearButton          .setDisable(true);
 			resolutionSlider     .setDisable(true);
 			widthSpinner         .setDisable(true);
 			heightSpinner        .setDisable(true);
@@ -179,16 +224,14 @@ public class ViewMain extends Application {
 			fpsSpinner           .setDisable(true);
 			refreshButton        .setDisable(true);
 			
-			if (timeline != null) timeline.stop();
-			
 			timeline = new Timeline();
 			timeline.setCycleCount(Timeline.INDEFINITE);
 			timeline.getKeyFrames().add(
 					new KeyFrame(Duration.millis(
 							1000 / fpsSpinner.getValue()), e1 -> {
 								totalGenerationsLabel.setText(
-										totalGenerations.toString());
-								totalGenerations++;
+										grid.getGenerations().toString());
+								grid.incrementGenerations();
 								grid.nextGeneration();
 								rePaint();
 					})
@@ -198,14 +241,15 @@ public class ViewMain extends Application {
 		
 		stopButton.setFont(COMMONFONT);
 		stopButton.setPadding(new Insets(10));
-		stopButton.setRipplerFill(Color.STEELBLUE);
+		stopButton.setRipplerFill(Color.RED);
 		stopButton.setDisable(true);
 		
 		stopButton.setOnAction(e -> {
+			insertMenu.setDisable(false);
+			fileMenu.setDisable(false);
 			stopButton           .setDisable(true);
 			startButton          .setDisable(false);
 			stepButton           .setDisable(false);
-			clearButton          .setDisable(false);
 			resolutionSlider     .setDisable(false);
 			widthSpinner         .setDisable(false);
 			heightSpinner        .setDisable(false);
@@ -218,12 +262,12 @@ public class ViewMain extends Application {
 		
 		stepButton.setFont(COMMONFONT);
 		stepButton.setPadding(new Insets(10));
-		stepButton.setRipplerFill(Color.STEELBLUE);
+		stepButton.setRipplerFill(Color.CADETBLUE);
 		
 		stepButton.setOnAction(e -> {
-			totalGenerations++;
+			grid.incrementGenerations();
 			totalGenerationsLabel.setText(
-					totalGenerations.toString());
+					grid.getGenerations().toString());
 			grid.nextGeneration();
 			rePaint();
 		});
@@ -234,8 +278,9 @@ public class ViewMain extends Application {
 		
 		clearButton.setOnAction(e -> {
 			grid.getArray().clear();
-			totalGenerations = 0;
-			totalGenerationsLabel.setText(totalGenerations.toString());
+			grid.setGenerations(0);
+			totalGenerationsLabel.setText(
+					grid.getGenerations().toString());
 			
 			rePaint();
 		});
@@ -260,11 +305,12 @@ public class ViewMain extends Application {
 		toroidalArrayCheckBox.setFont(COMMONFONT);
 		toroidalArrayCheckBox.setPadding(new Insets(10, 0, 0, 0));
 		toroidalArrayCheckBox.setStyle("-fx-padding: 8;");
+		toroidalArrayCheckBox.setCheckedColor(Color.CORNFLOWERBLUE);
 		
-		toroidalArrayCheckBox.setOnAction(e -> 
+		toroidalArrayCheckBox.setOnAction(e ->
 				grid.setToroidalArray(
 						grid.isToroidalArray() ? false : true));
-
+		
 		bottomHBox.setSpacing(38);
 		bottomHBox.setPadding(new Insets(10));
 		bottomHBox.getChildren().addAll(
@@ -300,8 +346,10 @@ public class ViewMain extends Application {
 					
 					hoverGrid = null;
 				}
-				else 
+				else if (e.getButton().toString().equals("SECONDARY"))
 					hoverGrid.rotate();
+				else
+					hoverGrid.flip();
 				
 				rePaint();
 			}
@@ -343,12 +391,60 @@ public class ViewMain extends Application {
 		});
 		
 		//Menu Bar
-		final Menu fileMenu = new Menu("_File");
+		newMenuItem.setOnAction(e -> {
+			grid.getArray().clear();
+			grid.setGenerations(0);
+			totalGenerationsLabel.setText(
+					grid.getGenerations().toString());
+			
+			rePaint();
+		});
 		
-		MenuItem newMenuItem      = new MenuItem("_New");
-		MenuItem openFileMenuItem = new MenuItem("_Open File...");
-		MenuItem saveMenuItem     = new MenuItem("_Save");
-		MenuItem saveAsMenuItem   = new MenuItem("Save _As...");
+		openFileMenuItem.setOnAction(e -> {
+			fileChooser.setTitle("Open Resource File");
+			
+			location = fileChooser.showOpenDialog(window);
+			
+			if (location != null) {
+				fileManager.setLocation(location.toPath());
+				grid = fileManager.openFile();
+				rePaint();
+				
+				svfW.setValue(grid.getWidth());
+				svfH.setValue(grid.getHeight());
+				toroidalArrayCheckBox.setSelected(grid.isToroidalArray());
+				totalGenerationsLabel.setText(
+						grid.getGenerations().toString());
+			}
+		});
+		
+		saveMenuItem.setOnAction(e -> {
+			if (location != null) {
+				fileManager.setLocation(location.toPath());
+				fileManager.saveFile(grid);
+			}
+			else {
+				fileChooser.setTitle("Save as");
+				
+				location = fileChooser.showSaveDialog(window);
+				
+				if (location != null) {
+					fileManager.setLocation(location.toPath());
+					fileManager.saveFile(grid);
+				}
+			}
+		});
+		
+		saveAsMenuItem.setOnAction(e -> {
+			fileChooser.setTitle("Save as");
+			
+			location = fileChooser.showSaveDialog(window);
+			
+			if (location != null) {
+				fileManager.setLocation(location.toPath());
+				fileManager.saveFile(grid);
+			}
+		});
 		
 		fileMenu.getItems().addAll(
 				newMenuItem,
@@ -356,19 +452,6 @@ public class ViewMain extends Application {
 				new SeparatorMenuItem(),
 				saveMenuItem,
 				saveAsMenuItem);
-		
-		final Menu optionsMenu = new Menu("_Options");
-		
-		MenuItem preferencesMenuItem = new MenuItem("_Preferences...");
-		
-		optionsMenu.getItems().add(
-				preferencesMenuItem);
-		
-		final Menu insertMenu = new Menu("_Insert");
-		
-		MenuItem gliderMenuItem = new MenuItem("_Glider");
-		MenuItem gospersGliderGunMenuItem = new MenuItem("G_osper's Glider Gun");
-		MenuItem lightweightSpaceshipMenuItem = new MenuItem("_Lightweight Spaceship");
 		
 		gliderMenuItem.setOnAction(e -> 
 				hoverGrid = Grid.glider());
@@ -379,29 +462,43 @@ public class ViewMain extends Application {
 		lightweightSpaceshipMenuItem.setOnAction(e -> 
 				hoverGrid = Grid.lightweightSpaceship());
 		
+		beehiveMenuItem.setOnAction(e ->
+				hoverGrid = Grid.beehive());
+
+		blinkerMenuItem.setOnAction(e -> 
+				hoverGrid = Grid.blinker());
+		
+		toadMenuItem.setOnAction(e -> 
+				hoverGrid = Grid.toad());
+		
+		beaconMenuItem.setOnAction(e -> 
+				hoverGrid = Grid.beacon());
+		
+		pulsarMenuItem.setOnAction(e ->
+				hoverGrid = Grid.pulsar());
+		
 		insertMenu.getItems().addAll(
 				gliderMenuItem,
 				gospersGliderGunMenuItem,
-				lightweightSpaceshipMenuItem);
-		
-		final Menu helpMenu = new Menu("_Help");
-		
-		MenuItem introductionMenuItem = new MenuItem("_Introduction...");
-		MenuItem examplesMenuItem = new MenuItem("_Exaples...");
-		MenuItem rulesMenuItem = new MenuItem("_Rules...");
+				lightweightSpaceshipMenuItem,
+				new SeparatorMenuItem(),
+				beehiveMenuItem,
+				new SeparatorMenuItem(),
+				blinkerMenuItem,
+				toadMenuItem,
+				beaconMenuItem);
 		
 		helpMenu.getItems().addAll(
 				introductionMenuItem,
 				examplesMenuItem,
 				rulesMenuItem);
 		
-		MenuBar menuBar = new MenuBar();
 		menuBar.setStyle("-fx-background-color: Whitesmoke;"
 				+ "-fx-font: Devanagari MT;"
 				+ "-fx-font-size: 16;");
+		
 		menuBar.getMenus().addAll(
 				fileMenu,
-				optionsMenu,
 				insertMenu,
 				helpMenu);
 		
@@ -427,7 +524,7 @@ public class ViewMain extends Application {
 		canvas.setHeight(grid.getHeight() * resolution);
 		window.setMinWidth ((grid.getWidth()  * resolution + 100) > 750 
 				? grid.getWidth() * resolution + 100 : 750);
-		window.setMinHeight(grid.getHeight() * resolution + 210);
+		window.setMinHeight(grid.getHeight() * resolution + 200);
 		
 		topHBox   .setSpacing((window.getWidth() - 750) / 6 + 13);
 		bottomHBox.setSpacing((window.getWidth() - 750) / 7 + 10);
@@ -435,24 +532,33 @@ public class ViewMain extends Application {
 		gc.setFill(Color.WHITESMOKE);
 		gc.fillRect(0, 0, grid.getWidth() * resolution, grid.getHeight() * resolution);
 		
+		//Squares
 		gc.setFill(Color.BLACK);
 		for (int y = 0; y < grid.getHeight(); y++){
 			for (int x = 0; x < grid.getWidth(); x++){
 				if (grid.getValue(x, y))
-					gc.fillRect(x * resolution, y * resolution, resolution, resolution);
+					gc.fillRect(
+							x * resolution,
+							y * resolution,
+							resolution,
+							resolution);
 			}
 		}
 		
+		//Hover Grid
 		if (hoverGrid != null) {
 			int x = (int) (mouseX / resolution);
 			int y = (int) (mouseY / resolution);
-			
+
+			gc.setFill(Color.GREY);
 			for (int i = 0; i < hoverGrid.getHeight(); i++) {
 				for (int j = 0; j < hoverGrid.getWidth(); j++) {
-					if (hoverGrid.getValue(j, i)) {
-						gc.setFill(Color.GREY);
-						gc.fillRect((j + x) * resolution, (i + y) * resolution, resolution, resolution);
-					}
+					if (hoverGrid.getValue(j, i))
+						gc.fillRect(
+								(j + x) * resolution,
+								(i + y) * resolution,
+								resolution,
+								resolution);
 				}
 			}
 		}
@@ -461,10 +567,18 @@ public class ViewMain extends Application {
 		gc.setFill(Color.LIGHTGREY);
 		
 		for (int i = 1; i < grid.getWidth(); i++)
-			gc.fillRect(i * resolution - .5, 0, 1, grid.getHeight() * resolution);
+			gc.fillRect(
+					i * resolution - .5,
+					0,
+					1,
+					grid.getHeight() * resolution);
 		
 		for (int i = 1; i < grid.getHeight(); i++)
-			gc.fillRect(0, i * resolution - .5, grid.getWidth() * resolution, 1);
+			gc.fillRect(
+					0,
+					i * resolution - .5,
+					grid.getWidth() * resolution,
+					1);
 		
 		//Border
 		gc.fillRect(0, 0, 2, canvas.getHeight());

@@ -1,12 +1,16 @@
 package com.leopoldmarx.thegameoflife.grid;
 
+import java.io.Serializable;
+
 /**
  * Stores x and y values in a position of a grid
  * 
  * @author Leopold Marx
  */
-public class Square implements Comparable<Square> {
+public class Square implements Comparable<Square>, Serializable {
 
+	private static final long serialVersionUID = -5663318710051924159L;
+	
 	private int x;
 	private int y;
 	

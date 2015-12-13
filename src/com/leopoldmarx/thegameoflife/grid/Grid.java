@@ -1,7 +1,10 @@
 package com.leopoldmarx.thegameoflife.grid;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+
+import javax.swing.DefaultListModel;
 
 /**
  * Represents an entire Grid of the Game of Life.
@@ -9,30 +12,39 @@ import java.util.Collections;
  * 
  * @author Leopold Marx
  */
-public class Grid {
+public class Grid implements Serializable {
+	
+	private static final long serialVersionUID = -1723253648442129097L;
 	
 	private int width;
 	private int height;
 	private int resolution;
+	private Integer generations;
 	
 	private ArrayList<Square> array = new ArrayList<>();
 
-	private ArrayList<Square> nextArray = array;
+	private transient ArrayList<Square> nextArray = array;
 	
 	private boolean toroidalArray;
 	
 	public Grid() {
 		width = 0;
 		height = 0;
+		generations = 0;
 		resolution = 20;
 		toroidalArray = false;
+		array = new ArrayList<>();
+		nextArray = array;
 	}
 	
 	public Grid(int x, int y) {
 		this.width  = x;
 		this.height = y;
+		this.generations = 0;
 		this.resolution = 20;
 		this.toroidalArray = false;
+		this.array = new ArrayList<>();
+		this.nextArray = this.array;
 	}
 	
 	/**
@@ -42,7 +54,11 @@ public class Grid {
 	 * @param y Vertical value of where the Square would be stored.
 	 */
 	public void addSquare(int x, int y) {
+		//Sorts array
 		Collections.sort(array);
+		
+		//Checks if the Square is already in the array.
+		//If not, it adds that Square
 		if (Collections.binarySearch(array, new Square(x, y)) < 0)
 			array.add(new Square(x, y));
 	}
@@ -97,14 +113,6 @@ public class Grid {
 		if (Collections.binarySearch(array, new Square(x, y)) >= 0)
 			return true;
 		return false;
-	}
-	
-	public ArrayList<Square> getArray() {
-		return array;
-	}
-
-	public void setArray(ArrayList<Square> array) {
-		this.array = array;
 	}
 
 	/**
@@ -207,6 +215,12 @@ public class Grid {
 		array = nextArray;
 	}
 	
+//	public void makeModel() {
+//		model.clear();
+//		for (Square s : array)
+//			model.addElement(s);
+//	}
+	
 	public static Grid glider() {
 		Grid g = new Grid(3, 3);
 		
@@ -284,13 +298,77 @@ public class Grid {
 		return g;
 	}
 	
+	public static Grid blinker() {
+		Grid g = new Grid (1, 3);
+		
+		g.addSquare(0, 0);
+		g.addSquare(0, 1);
+		g.addSquare(0, 2);
+		
+		return g;
+	}
+	
+	public static Grid beehive() {
+		Grid g = new Grid(3, 4);
+		
+		g.addSquare(1, 0);
+		g.addSquare(0, 1);
+		g.addSquare(0, 2);
+		g.addSquare(2, 1);
+		g.addSquare(2, 2);
+		g.addSquare(1, 3);
+		
+		return g;
+	}
+	
+	public static Grid toad() {
+		Grid g = new Grid (4, 2);
+		
+		g.addSquare(1, 0);
+		g.addSquare(2, 0);
+		g.addSquare(3, 0);
+		
+		g.addSquare(0, 1);
+		g.addSquare(1, 1);
+		g.addSquare(2, 1);
+		
+		return g;
+	}
+	
+	public static Grid beacon() {
+		Grid g = new Grid(4, 4);
+		
+		g.addSquare(0, 0);
+		g.addSquare(1, 0);
+		g.addSquare(0, 1);
+		
+		g.addSquare(3, 2);
+		g.addSquare(2, 3);
+		g.addSquare(3, 3);
+		
+		return g;
+	}
+	
+	public static Grid pulsar() {
+		//TODO Pulsar
+		Grid g = new Grid();
+		return g;
+	}
+	
 	public void rotate() {
 		Grid g = new Grid(this.height, this.width);
 		for (Square s : this.getArray())
-			g.addSquare(s.getY(), this.width - 1 - s.getX());
+			g.addSquare(this.height - 1 - s.getY(), s.getX());
 		this.setArray(g.getArray());
 		this.setWidth(g.getWidth());
 		this.setHeight(g.getHeight());
+	}
+	
+	public void flip() {
+		ArrayList<Square> tempArray = new ArrayList<>();
+		for (Square s : this.getArray())
+			tempArray.add(new Square(this.width - 1 - s.getX(), s.getY()));
+		this.setArray(tempArray);
 	}
 	
 	public boolean isToroidalArray() {
@@ -323,5 +401,25 @@ public class Grid {
 
 	public void setResolution(int resolution) {
 		this.resolution = resolution;
+	}
+	
+	public void incrementGenerations () {
+		generations++;
+	}
+	
+	public Integer getGenerations() {
+		return generations;
+	}
+
+	public void setGenerations(Integer generations) {
+		this.generations = generations;
+	}
+
+	public ArrayList<Square> getArray() {
+		return array;
+	}
+
+	public void setArray(ArrayList<Square> array) {
+		this.array = array;
 	}
 }
