@@ -16,6 +16,8 @@ public class Grid implements Serializable {
 	
 	private static final long serialVersionUID = -1723253648442129097L;
 	
+	private String name;
+	
 	private int width;
 	private int height;
 	private int resolution;
@@ -215,146 +217,6 @@ public class Grid implements Serializable {
 		array = nextArray;
 	}
 	
-//	public void makeModel() {
-//		model.clear();
-//		for (Square s : array)
-//			model.addElement(s);
-//	}
-	
-	public static Grid glider() {
-		Grid g = new Grid(3, 3);
-		
-		g.addSquare(0, 0);
-		g.addSquare(2, 0);
-		g.addSquare(1, 1);
-		g.addSquare(2, 1);
-		g.addSquare(1, 2);
-		
-		return g;
-	}
-	
-	public static Grid lightweightSpaceship() {
-		Grid g = new Grid(5, 4);
-		
-		g.addSquare(1, 0);
-		g.addSquare(2, 0);
-		g.addSquare(3, 0);
-		g.addSquare(4, 0);
-		g.addSquare(0, 1);
-		g.addSquare(4, 1);
-		g.addSquare(4, 2);
-		g.addSquare(0, 3);
-		g.addSquare(3, 3);
-		
-		return g;
-	}
-	
-	public static Grid gospersGliderGun() {
-		Grid g = new Grid(36, 9);
-		
-		g.addSquare(0, 4);
-		g.addSquare(0, 5);
-		g.addSquare(1, 4);
-		g.addSquare(1, 5);
-		
-		g.addSquare(10, 4);
-		g.addSquare(10, 5);
-		g.addSquare(10, 6);
-		g.addSquare(11, 3);
-		g.addSquare(11, 7);
-		g.addSquare(12, 2);
-		g.addSquare(13, 2);
-		g.addSquare(12, 8);
-		g.addSquare(13, 8);
-		
-		g.addSquare(14, 5);
-		g.addSquare(15, 3);
-		g.addSquare(15, 7);
-		g.addSquare(16, 4);
-		g.addSquare(16, 5);
-		g.addSquare(16, 6);
-		g.addSquare(17, 5);
-		
-		g.addSquare(20, 2);
-		g.addSquare(20, 3);
-		g.addSquare(20, 4);
-		g.addSquare(21, 2);
-		g.addSquare(21, 3);
-		g.addSquare(21, 4);
-		g.addSquare(22, 1);
-		g.addSquare(22, 5);
-		
-		g.addSquare(24, 0);
-		g.addSquare(24, 1);
-		
-		g.addSquare(24, 5);
-		g.addSquare(24, 6);
-		
-		g.addSquare(34, 2);
-		g.addSquare(34, 3);
-		g.addSquare(35, 2);
-		g.addSquare(35, 3);
-		
-		return g;
-	}
-	
-	public static Grid blinker() {
-		Grid g = new Grid (1, 3);
-		
-		g.addSquare(0, 0);
-		g.addSquare(0, 1);
-		g.addSquare(0, 2);
-		
-		return g;
-	}
-	
-	public static Grid beehive() {
-		Grid g = new Grid(3, 4);
-		
-		g.addSquare(1, 0);
-		g.addSquare(0, 1);
-		g.addSquare(0, 2);
-		g.addSquare(2, 1);
-		g.addSquare(2, 2);
-		g.addSquare(1, 3);
-		
-		return g;
-	}
-	
-	public static Grid toad() {
-		Grid g = new Grid (4, 2);
-		
-		g.addSquare(1, 0);
-		g.addSquare(2, 0);
-		g.addSquare(3, 0);
-		
-		g.addSquare(0, 1);
-		g.addSquare(1, 1);
-		g.addSquare(2, 1);
-		
-		return g;
-	}
-	
-	public static Grid beacon() {
-		Grid g = new Grid(4, 4);
-		
-		g.addSquare(0, 0);
-		g.addSquare(1, 0);
-		g.addSquare(0, 1);
-		
-		g.addSquare(3, 2);
-		g.addSquare(2, 3);
-		g.addSquare(3, 3);
-		
-		return g;
-	}
-	
-	public static Grid pulsar() {
-		//TODO Pulsar
-		Grid g = new Grid();
-		return g;
-	}
-	
 	public void rotate() {
 		Grid g = new Grid(this.height, this.width);
 		for (Square s : this.getArray())
@@ -369,6 +231,36 @@ public class Grid implements Serializable {
 		for (Square s : this.getArray())
 			tempArray.add(new Square(this.width - 1 - s.getX(), s.getY()));
 		this.setArray(tempArray);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Grid clone() {
+		Grid g = new Grid(this.width, this.height);
+		
+		g.generations = this.generations.intValue();
+		g.name = this.name;
+		g.resolution = this.resolution;
+		g.toroidalArray = this.toroidalArray;
+		g.setArray((ArrayList<Square>) this.array.clone());
+		
+		return g;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		
+		if (!(obj instanceof Grid)) return false;
+		
+		Grid g = (Grid) obj;
+		
+		return     this.name       .equals(g.name) 
+				&& this.array      .equals(g.array)
+				&& this.generations.equals(g.generations)
+				&& this.resolution    == g.resolution
+				&& this.toroidalArray == g.toroidalArray
+				&& this.width         == g.width
+				&& this.height        == g.height;
 	}
 	
 	public boolean isToroidalArray() {
@@ -421,5 +313,13 @@ public class Grid implements Serializable {
 
 	public void setArray(ArrayList<Square> array) {
 		this.array = array;
+	}
+	
+	public String getName() {
+		return name;
+	}
+	
+	public void setName(String name) {
+		this.name = name;
 	}
 }

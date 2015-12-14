@@ -1,14 +1,17 @@
 package com.leopoldmarx.thegameoflife.view;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXCheckBox;
 import com.jfoenix.controls.JFXSlider;
 import com.jfoenix.controls.JFXSlider.IndicatorPosition;
+import com.leopoldmarx.thegameoflife.driver.Program;
 import com.leopoldmarx.thegameoflife.file.FileManager;
 import com.leopoldmarx.thegameoflife.grid.Grid;
 import com.leopoldmarx.thegameoflife.grid.Square;
+import com.leopoldmarx.thegameoflife.insert.Insert;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -115,15 +118,9 @@ public class ViewMain extends Application {
 		MenuItem saveAsMenuItem   = new MenuItem("Save _As...");
 		
 		final Menu insertMenu = new Menu("_Insert");
+		Insert insert = Program.getInstance().getInsert();
 		
-		MenuItem gliderMenuItem = new MenuItem("_Glider");
-		MenuItem gospersGliderGunMenuItem = new MenuItem("G_osper's Glider Gun");
-		MenuItem lightweightSpaceshipMenuItem = new MenuItem("_Lightweight Spaceship");
-		MenuItem beehiveMenuItem = new MenuItem("_Beehive");
-		MenuItem blinkerMenuItem = new MenuItem("Bl_inker");
-		MenuItem toadMenuItem = new MenuItem("_Toad");
-		MenuItem beaconMenuItem = new MenuItem("Be_acon");
-		MenuItem pulsarMenuItem = new MenuItem("_Pulsar");
+		MenuItem editMenuItem = new MenuItem("_Edit...");
 		
 		final Menu helpMenu = new Menu("_Help");
 		
@@ -152,6 +149,7 @@ public class ViewMain extends Application {
 		
 		widthLabel.setFont(COMMONFONT);
 		widthLabel.setPadding(new Insets(7,0,0,0));
+		widthLabel.setPrefWidth(60);
 		
 		SpinnerValueFactory svfW = new SpinnerValueFactory
 				.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE);
@@ -164,12 +162,12 @@ public class ViewMain extends Application {
 		widthSpinner.setPrefWidth(100);
 		widthSpinner.setEditable(true);
 		
-		widthSpinner.widthProperty().addListener(e ->
+		widthSpinner.valueProperty().addListener(e ->
 					grid.setWidth(widthSpinner.getValue()));
 		
 		heightLabel.setFont(COMMONFONT);
 		heightLabel.setPadding(new Insets(7,0,0,0));
-		heightLabel.setPrefWidth(70);
+		heightLabel.setPrefWidth(65);
 		
 		SpinnerValueFactory svfH = new SpinnerValueFactory
 				.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE);
@@ -182,7 +180,7 @@ public class ViewMain extends Application {
 		heightSpinner.setPrefWidth(100);
 		heightSpinner.setEditable(true);
 		
-		heightSpinner.widthProperty().addListener(e ->
+		heightSpinner.valueProperty().addListener(e ->
 				grid.setHeight(heightSpinner.getValue()));
 		
 		refreshButton.setFont(COMMONFONT);
@@ -192,6 +190,7 @@ public class ViewMain extends Application {
 		refreshButton.setOnAction(e -> {
 			grid.setWidth(widthSpinner.getValue());
 			grid.setHeight(heightSpinner.getValue());
+			grid.setResolution((int)resolutionSlider.getValue());
 			rePaint();
 		});
 		
@@ -453,40 +452,36 @@ public class ViewMain extends Application {
 				saveMenuItem,
 				saveAsMenuItem);
 		
-		gliderMenuItem.setOnAction(e -> 
-				hoverGrid = Grid.glider());
+		for (Grid g : insert.getArray()) {
+			MenuItem mi = new MenuItem(g.getName());
+			
+			mi.setOnAction(e -> 
+					hoverGrid = g);
+			
+			insertMenu.getItems().add(mi);
+		}
 		
-		gospersGliderGunMenuItem.setOnAction(e -> 
-				hoverGrid = Grid.gospersGliderGun());
+		insertMenu.getItems().add(new SeparatorMenuItem());
+		insertMenu.getItems().add(editMenuItem);
 		
-		lightweightSpaceshipMenuItem.setOnAction(e -> 
-				hoverGrid = Grid.lightweightSpaceship());
-		
-		beehiveMenuItem.setOnAction(e ->
-				hoverGrid = Grid.beehive());
-
-		blinkerMenuItem.setOnAction(e -> 
-				hoverGrid = Grid.blinker());
-		
-		toadMenuItem.setOnAction(e -> 
-				hoverGrid = Grid.toad());
-		
-		beaconMenuItem.setOnAction(e -> 
-				hoverGrid = Grid.beacon());
-		
-		pulsarMenuItem.setOnAction(e ->
-				hoverGrid = Grid.pulsar());
-		
-		insertMenu.getItems().addAll(
-				gliderMenuItem,
-				gospersGliderGunMenuItem,
-				lightweightSpaceshipMenuItem,
-				new SeparatorMenuItem(),
-				beehiveMenuItem,
-				new SeparatorMenuItem(),
-				blinkerMenuItem,
-				toadMenuItem,
-				beaconMenuItem);
+		editMenuItem.setOnAction(e -> {
+			ViewEditInsert vei = new ViewEditInsert();
+			
+			vei.display();
+			
+			insertMenu.getItems().clear();
+			for (Grid g : insert.getArray()) {
+				MenuItem mi = new MenuItem(g.getName());
+				
+				mi.setOnAction(e1 -> 
+						hoverGrid = g);
+				
+				insertMenu.getItems().add(mi);
+			}
+			
+			insertMenu.getItems().add(new SeparatorMenuItem());
+			insertMenu.getItems().add(editMenuItem);
+		});
 		
 		helpMenu.getItems().addAll(
 				introductionMenuItem,
