@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.leopoldmarx.thegameoflife.driver.Program;
 import com.leopoldmarx.thegameoflife.grid.Grid;
 import com.leopoldmarx.thegameoflife.insert.Insert;
 
@@ -90,25 +91,26 @@ public class FileManager {
 		return null;
 	}
 	
-	public void saveInsert(Insert insert) {
-		if (Files.exists(insertLocation)) {
-			String file = location.toString();
+	public void saveInsert() {
+		String file = insertLocation.toString()
+				.replace("/Insert.inrt", "")
+				.replace("\\Insert.inrt", "");
+		if (Files.exists(Paths.get(file))) {
 			try{
 				ObjectOutputStream out = new ObjectOutputStream(
 						new FileOutputStream(
-								file.replace("/Insert.inrt", "")
-									.replace("\\Insert.inrt", "")));
-				out.writeObject(insert);
+								insertLocation.toFile()));
+				out.writeObject(Program.getInstance().getInsert());
 				out.close();
 			}catch(IOException ex){
 				ex.printStackTrace();
 			}
 		}
 		else {
-			File file = location.toFile();
-			file.mkdir();
+			File f = new File(file);
+			f.mkdir();
 			
-			saveInsert(insert);
+			saveInsert();
 		}
 	}
 

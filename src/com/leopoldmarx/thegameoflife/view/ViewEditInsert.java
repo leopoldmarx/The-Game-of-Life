@@ -122,6 +122,8 @@ public class ViewEditInsert {
 						insert.getArray().get(pos));
 				
 				veig.display();
+				insert.getArray().set(pos, veig.getGrid());
+				reDraw();
 			});
 			
 			remove.setButtonType(ButtonType.RAISED);

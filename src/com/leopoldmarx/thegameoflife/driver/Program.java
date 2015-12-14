@@ -4,8 +4,6 @@ import com.leopoldmarx.thegameoflife.file.FileManager;
 import com.leopoldmarx.thegameoflife.insert.Insert;
 import com.leopoldmarx.thegameoflife.view.ViewMain;
 
-import javafx.application.Application;
-
 public class Program {
 
 	private static Program instance;
@@ -37,6 +35,8 @@ public class Program {
 		fileManager = new FileManager();
 		insert = fileManager.openInsert();
 		
-		Application.launch(ViewMain.class, "");
+		ViewMain vm = new ViewMain();
+		
+		new Thread(vm).start();
 	}
 }

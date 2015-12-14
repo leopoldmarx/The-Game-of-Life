@@ -46,8 +46,8 @@ public class ViewEditInsertGrid {
 		canvas = new Canvas();
 		gc = canvas.getGraphicsContext2D();
 		
-		this.grid = grid.clone();
 		originalGrid = grid;
+		this.grid = grid.clone();
 	}
 	
 	public void display() {
@@ -190,7 +190,7 @@ public class ViewEditInsertGrid {
 				alert.showAndWait();
 				
 				if (alert.getResult() == javafx.scene.control.ButtonType.YES)
-					originalGrid = grid;
+					grid = originalGrid.clone();
 				else if (alert.getResult() == javafx.scene.control.ButtonType.CANCEL)
 					e.consume();
 			}
@@ -201,6 +201,14 @@ public class ViewEditInsertGrid {
 		window.showAndWait();
 	}
 	
+	public Grid getGrid() {
+		return grid;
+	}
+
+	public void setGrid(Grid grid) {
+		this.grid = grid;
+	}
+
 	private void rePaint() {
 		int resolution = grid.getResolution();
 		

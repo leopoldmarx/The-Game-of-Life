@@ -1,7 +1,6 @@
 package com.leopoldmarx.thegameoflife.view;
 
 import java.io.File;
-import java.util.ArrayList;
 
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXCheckBox;
@@ -40,7 +39,7 @@ import javafx.util.Duration;
  * 
  * @author Leopold Marx
  */
-public class ViewMain extends Application {
+public class ViewMain extends Application implements Runnable {
 
 	private Stage window;
 	private BorderPane borderPane = new BorderPane();
@@ -504,6 +503,10 @@ public class ViewMain extends Application {
 		borderPane.setTop(menuBar);
 		borderPane.setCenter(mainBorderPane);
 		
+		window.setOnCloseRequest(e -> {
+			Program.getInstance().getFileManager().saveInsert();
+		});
+		
 		Scene scene = new Scene(borderPane);
 		window.setScene(scene);
 		window.show();
@@ -580,5 +583,10 @@ public class ViewMain extends Application {
 		gc.fillRect(0, 0, canvas.getWidth(), 2);
 		gc.fillRect(0, canvas.getHeight() - 2, canvas.getWidth(), 2);
 		gc.fillRect(canvas.getWidth() - 2, 0, 2, canvas.getHeight());
+	}
+
+	@Override
+	public void run() {
+		launch();
 	}
 }

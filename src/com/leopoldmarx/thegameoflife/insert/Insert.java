@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import com.leopoldmarx.thegameoflife.driver.Program;
 import com.leopoldmarx.thegameoflife.grid.Grid;
 
 public class Insert implements Serializable{
