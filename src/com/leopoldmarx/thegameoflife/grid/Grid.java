@@ -23,13 +23,14 @@ public class Grid implements Serializable {
 	private int resolution;
 	private Integer generations;
 	
-	private ArrayList<Square> array = new ArrayList<>();
+	private ArrayList<Square> array;
 
 	private transient ArrayList<Square> nextArray = array;
 	
 	private boolean toroidalArray;
 	
 	public Grid() {
+		name = "";
 		width = 0;
 		height = 0;
 		generations = 0;
@@ -40,6 +41,7 @@ public class Grid implements Serializable {
 	}
 	
 	public Grid(int x, int y) {
+		this.name = "";
 		this.width  = x;
 		this.height = y;
 		this.generations = 0;

@@ -17,6 +17,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 public class ViewEditInsertGrid {
@@ -52,9 +53,16 @@ public class ViewEditInsertGrid {
 	
 	public void display() {
 		window = new Stage();
+		window.initModality(Modality.APPLICATION_MODAL);
+		window.setTitle("Edit Insert");
 		
 		JFXTextField nameField = new JFXTextField();
 		JFXButton saveButton = new JFXButton("Save");
+
+		Label widthLabel = new Label("Width:");
+		Spinner<Integer> widthSpinner = new Spinner<>();
+		Label heightLabel = new Label("Height:");
+		Spinner<Integer> heightSpinner = new Spinner<>();
 		
 		//Top
 		nameField.setFont(COMMONFONT);
@@ -63,8 +71,29 @@ public class ViewEditInsertGrid {
 		nameField.setText(grid.getName());
 		
 		saveButton.setOnAction(e -> {
-			originalGrid = grid;
-			grid = originalGrid.clone();
+			if (grid.getArray().isEmpty()) {
+				Alert alert = new Alert(
+						AlertType.ERROR,
+						"Cannot have a blank Grid.",
+						javafx.scene.control.ButtonType.OK);
+				
+				alert.showAndWait();
+			}
+			else if (nameField.getText().isEmpty()) {
+				Alert alert = new Alert(
+						AlertType.ERROR,
+						"Cannot have a blank name.",
+						javafx.scene.control.ButtonType.OK);
+				
+				alert.showAndWait();
+			}
+			else {
+				grid.setWidth(widthSpinner.getValue());
+				grid.setHeight(heightSpinner.getValue());
+				grid.setName(nameField.getText());
+				originalGrid = grid;
+				grid = originalGrid.clone();
+			}
 		});
 		
 		topHBox.setSpacing(13);
@@ -74,11 +103,6 @@ public class ViewEditInsertGrid {
 				saveButton);
 		
 		//Bottom
-		Label widthLabel = new Label("Width:");
-		Spinner<Integer> widthSpinner = new Spinner<>();
-		Label heightLabel = new Label("Height:");
-		Spinner<Integer> heightSpinner = new Spinner<>();
-		
 		widthLabel.setFont(COMMONFONT);
 		widthLabel.setPadding(new Insets(7,0,0,0));
 		widthLabel.setPrefWidth(60);
@@ -189,10 +213,57 @@ public class ViewEditInsertGrid {
 				
 				alert.showAndWait();
 				
-				if (alert.getResult() == javafx.scene.control.ButtonType.YES)
-					grid = originalGrid.clone();
+				if (alert.getResult() == javafx.scene.control.ButtonType.YES) {
+
+					if (grid.getArray().isEmpty()) {
+						Alert alert1 = new Alert(
+								AlertType.ERROR,
+								"Cannot have a blank Grid.",
+								javafx.scene.control.ButtonType.OK);
+						
+						alert1.showAndWait();
+					}
+					else if (nameField.getText().isEmpty()) {
+						Alert alert1 = new Alert(
+								AlertType.ERROR,
+								"Cannot have a blank name.",
+								javafx.scene.control.ButtonType.OK);
+						
+						alert1.showAndWait();
+					}
+					else {
+						grid.setWidth(widthSpinner.getValue());
+						grid.setHeight(heightSpinner.getValue());
+						grid.setName(nameField.getText());
+						originalGrid = grid;
+						grid = originalGrid.clone();
+					}
+				}
 				else if (alert.getResult() == javafx.scene.control.ButtonType.CANCEL)
 					e.consume();
+			}
+			else if (grid.getArray().isEmpty()) {
+				Alert alert1 = new Alert(
+						AlertType.ERROR,
+						"Cannot have a blank Grid.",
+						javafx.scene.control.ButtonType.OK);
+				
+				alert1.showAndWait();
+			}
+			else if (nameField.getText().isEmpty()) {
+				Alert alert1 = new Alert(
+						AlertType.ERROR,
+						"Cannot have a blank name.",
+						javafx.scene.control.ButtonType.OK);
+				
+				alert1.showAndWait();
+			}
+			else {
+				grid.setWidth(widthSpinner.getValue());
+				grid.setHeight(heightSpinner.getValue());
+				grid.setName(nameField.getText());
+				originalGrid = grid;
+				grid = originalGrid.clone();
 			}
 		});
 		

@@ -4,6 +4,8 @@ import com.leopoldmarx.thegameoflife.file.FileManager;
 import com.leopoldmarx.thegameoflife.insert.Insert;
 import com.leopoldmarx.thegameoflife.view.ViewMain;
 
+import javafx.application.Application;
+
 public class Program {
 
 	private static Program instance;

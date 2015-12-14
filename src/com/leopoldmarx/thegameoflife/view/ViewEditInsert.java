@@ -3,6 +3,7 @@ package com.leopoldmarx.thegameoflife.view;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXButton.ButtonType;
 import com.leopoldmarx.thegameoflife.driver.Program;
+import com.leopoldmarx.thegameoflife.grid.Grid;
 import com.leopoldmarx.thegameoflife.insert.Insert;
 
 import javafx.geometry.Insets;
@@ -33,7 +34,7 @@ public class ViewEditInsert {
 		
 		window = new Stage();
 		window.initModality(Modality.APPLICATION_MODAL);
-		window.setTitle("Edit Insert");
+		window.setTitle("Edit Inserts");
 		
 		borderPane.setPadding(new Insets(10));
 		
@@ -48,6 +49,19 @@ public class ViewEditInsert {
 		JFXButton restoreDefaults = new JFXButton("Restore Defaults");
 		
 		newInsert.setFont(new Font("Devanagari MT", 18));
+		newInsert.setButtonType(ButtonType.RAISED);
+		
+		newInsert.setOnAction(e -> {
+			insert.addInsert(new Grid(4, 4));
+			ViewEditInsertGrid veig = new ViewEditInsertGrid(
+					insert.getArray().get(
+							insert.getArray().size() - 1));
+			veig.display();
+			insert.getArray().set(
+					insert.getArray().size() - 1,
+					veig.getGrid());
+			reDraw();
+		});
 		
 		restoreDefaults.setFont(new Font("Devanagari MT", 18));
 		restoreDefaults.setButtonType(ButtonType.RAISED);
@@ -83,8 +97,10 @@ public class ViewEditInsert {
 				new Separator(),
 				bottomHBox);
 		
-		window.widthProperty().addListener(e -> 
-				bottomHBox.setSpacing(window.getWidth() - 160 - 20 - 75));
+		window.widthProperty().addListener(e -> {
+				System.out.println(window.getWidth());
+				bottomHBox.setSpacing(window.getWidth() - 160 - 20 - 75);
+			});
 		
 		borderPane.setCenter(gridPane);
 		borderPane.setBottom(vBox);
@@ -97,17 +113,19 @@ public class ViewEditInsert {
 	private void reDraw() {
 		gridPane.getChildren().clear();
 		
+		int labelWidth = 0;
+		
 		for (int i = 0; i < insert.getArray().size(); i++) {
 			final int pos = i;
 			
 			Label l = new Label(insert.getArray().get(i).getName());
-			Label ref = new Label(l.getText());
+			if (l.getWidth() > labelWidth)
+				labelWidth = (int) l.getWidth();
 
 			l.setFont(new Font("Devanagari MT", 20));
-			ref.setFont(l.getFont());
 			l.setPadding(new Insets(
 					3,
-					window.getWidth() - ref.getWidth() - 422,
+					window.getWidth() - labelWidth - 422,
 					0,
 					0));
 
@@ -147,11 +165,11 @@ public class ViewEditInsert {
 					reDraw();
 				}
 			});
-			
+			final int actualLabelWidth = labelWidth;
 			window.widthProperty().addListener(e ->
 				l.setPadding(new Insets(
 						3,
-						window.getWidth() - ref.getWidth() - 422,
+						window.getWidth() - actualLabelWidth - 422,
 						0,
 						0)));
 			
