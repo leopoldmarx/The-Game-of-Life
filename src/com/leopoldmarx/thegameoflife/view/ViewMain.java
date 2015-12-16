@@ -26,6 +26,9 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
@@ -389,6 +392,10 @@ public class ViewMain extends Application implements Runnable {
 		});
 		
 		//Menu Bar
+		newMenuItem.setAccelerator(
+				new KeyCodeCombination(
+						KeyCode.N, KeyCombination.CONTROL_DOWN));
+		
 		newMenuItem.setOnAction(e -> {
 			grid.getArray().clear();
 			grid.setGenerations(0);
@@ -415,6 +422,10 @@ public class ViewMain extends Application implements Runnable {
 						grid.getGenerations().toString());
 			}
 		});
+		
+		saveMenuItem.setAccelerator(
+				new KeyCodeCombination(
+						KeyCode.S, KeyCombination.CONTROL_DOWN));
 		
 		saveMenuItem.setOnAction(e -> {
 			if (location != null) {
