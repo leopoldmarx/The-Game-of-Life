@@ -1,5 +1,7 @@
 package com.leopoldmarx.thegameoflife.view;
 
+import java.util.Set;
+
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXButton.ButtonType;
 import com.leopoldmarx.thegameoflife.driver.Program;
@@ -7,10 +9,14 @@ import com.leopoldmarx.thegameoflife.grid.Grid;
 import com.leopoldmarx.thegameoflife.insert.Insert;
 
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollBar;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -29,6 +35,7 @@ public class ViewEditInsert {
 	Insert insert = Program.getInstance().getInsert();
 	
 	GridPane gridPane = new GridPane();
+	ScrollPane scrollPane = new ScrollPane();
 	
 	public void display() {
 		
@@ -42,6 +49,9 @@ public class ViewEditInsert {
 		
 		gridPane.setVgap(20);
 		gridPane.setHgap(10);
+		
+		scrollPane.setContent(gridPane);
+		scrollPane.setStyle("-fx-background-color:transparent;");
 		
 		reDraw();
 		
@@ -57,9 +67,10 @@ public class ViewEditInsert {
 					insert.getArray().get(
 							insert.getArray().size() - 1));
 			veig.display();
-			insert.getArray().set(
-					insert.getArray().size() - 1,
-					veig.getGrid());
+			if (veig.isSave())
+				insert.getArray().set(
+						insert.getArray().size() - 1,
+						veig.getGrid());
 			reDraw();
 		});
 		
@@ -97,12 +108,24 @@ public class ViewEditInsert {
 				new Separator(),
 				bottomHBox);
 		
-		window.widthProperty().addListener(e -> {
-				System.out.println(window.getWidth());
-				bottomHBox.setSpacing(window.getWidth() - 160 - 20 - 75);
-			});
+		window.widthProperty().addListener(e ->
+				bottomHBox.setSpacing(window.getWidth() - 160 - 20 - 75));
 		
-		borderPane.setCenter(gridPane);
+		window.heightProperty().addListener(e -> {
+			Set<Node> nodes = scrollPane.lookupAll(".scroll-bar");
+	        for (final Node node : nodes) {
+	            if (node instanceof ScrollBar) {
+	                ScrollBar sb = (ScrollBar) node;
+	                if (sb.getOrientation() == Orientation.HORIZONTAL) {
+	                    System.out.println("horizontal scrollbar visible = " + sb.isVisible());
+	                    System.out.println("width = " + sb.getWidth());
+	                    System.out.println("height = " + sb.getHeight());
+	                }
+	            }
+	        }
+		});
+		
+		borderPane.setCenter(scrollPane);
 		borderPane.setBottom(vBox);
 		
 		Scene scene = new Scene(borderPane, 500, 700);
@@ -125,7 +148,7 @@ public class ViewEditInsert {
 			l.setFont(new Font("Devanagari MT", 20));
 			l.setPadding(new Insets(
 					3,
-					window.getWidth() - labelWidth - 422,
+					window.getWidth() - labelWidth - 432,
 					0,
 					0));
 
@@ -140,7 +163,8 @@ public class ViewEditInsert {
 						insert.getArray().get(pos));
 				
 				veig.display();
-				insert.getArray().set(pos, veig.getGrid());
+				if (veig.isSave())
+					insert.getArray().set(pos, veig.getGrid());
 				reDraw();
 			});
 			
@@ -169,7 +193,7 @@ public class ViewEditInsert {
 			window.widthProperty().addListener(e ->
 				l.setPadding(new Insets(
 						3,
-						window.getWidth() - actualLabelWidth - 422,
+						window.getWidth() - actualLabelWidth - 432,
 						0,
 						0)));
 			

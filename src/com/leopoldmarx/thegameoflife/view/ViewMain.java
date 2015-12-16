@@ -503,9 +503,8 @@ public class ViewMain extends Application implements Runnable {
 		borderPane.setTop(menuBar);
 		borderPane.setCenter(mainBorderPane);
 		
-		window.setOnCloseRequest(e -> {
-			Program.getInstance().getFileManager().saveInsert();
-		});
+		window.setOnCloseRequest(e ->
+				Program.getInstance().getFileManager().saveInsert());
 		
 		Scene scene = new Scene(borderPane);
 		window.setScene(scene);

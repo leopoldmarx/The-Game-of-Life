@@ -2,6 +2,7 @@ package com.leopoldmarx.thegameoflife.view;
 
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXTextField;
+import com.leopoldmarx.thegameoflife.driver.Program;
 import com.leopoldmarx.thegameoflife.grid.Grid;
 
 import javafx.geometry.Insets;
@@ -37,6 +38,8 @@ public class ViewEditInsertGrid {
 	private boolean dragged = false;
 	private int oldX, oldY;
 	
+	private boolean save;
+	
 	private static final Font COMMONFONT = new Font("Devanagari MT", 20);
 	
 	public ViewEditInsertGrid(Grid grid) {
@@ -49,6 +52,8 @@ public class ViewEditInsertGrid {
 		
 		originalGrid = grid;
 		this.grid = grid.clone();
+		
+		save = true;
 	}
 	
 	public void display() {
@@ -58,6 +63,7 @@ public class ViewEditInsertGrid {
 		
 		JFXTextField nameField = new JFXTextField();
 		JFXButton saveButton = new JFXButton("Save");
+		JFXButton deleteButton = new JFXButton("Delete");
 
 		Label widthLabel = new Label("Width:");
 		Spinner<Integer> widthSpinner = new Spinner<>();
@@ -67,22 +73,19 @@ public class ViewEditInsertGrid {
 		//Top
 		nameField.setFont(COMMONFONT);
 		saveButton.setFont(COMMONFONT);
+		deleteButton.setFont(COMMONFONT);
 		
 		nameField.setText(grid.getName());
 		
 		saveButton.setOnAction(e -> {
-			if (grid.getArray().isEmpty()) {
-				Alert alert = new Alert(
-						AlertType.ERROR,
-						"Cannot have a blank Grid.",
-						javafx.scene.control.ButtonType.OK);
+			save = false;
+			
+			if    ((nameField.getText().isEmpty() || grid.getArray().isEmpty())
+				|| (nameField.getText().isEmpty() && grid.getArray().isEmpty())) {
 				
-				alert.showAndWait();
-			}
-			else if (nameField.getText().isEmpty()) {
 				Alert alert = new Alert(
 						AlertType.ERROR,
-						"Cannot have a blank name.",
+						"Invalid entries. Grid and Name cannot be empty.",
 						javafx.scene.control.ButtonType.OK);
 				
 				alert.showAndWait();
@@ -96,11 +99,31 @@ public class ViewEditInsertGrid {
 			}
 		});
 		
+		deleteButton.setOnAction(e -> {
+			Alert alert = new Alert(
+					AlertType.CONFIRMATION,
+					"Are you sure you would like to delete?",
+					javafx.scene.control.ButtonType.YES,
+					javafx.scene.control.ButtonType.NO,
+					javafx.scene.control.ButtonType.CANCEL);
+			
+			alert.showAndWait();
+			
+			if (alert.getResult() == javafx.scene.control.ButtonType.YES) {
+				
+				window.close();
+				
+				Program.getInstance().getInsert().getArray().remove(grid);
+				save = false;
+			}
+		});
+		
 		topHBox.setSpacing(13);
 		topHBox.setPadding(new Insets(0, 10, 10, 10));
 		topHBox.getChildren().addAll(
 				nameField,
-				saveButton);
+				saveButton,
+				deleteButton);
 		
 		//Bottom
 		widthLabel.setFont(COMMONFONT);
@@ -120,6 +143,7 @@ public class ViewEditInsertGrid {
 		
 		widthSpinner.valueProperty().addListener(e -> {
 			grid.setWidth(widthSpinner.getValue());
+			save = true;
 			rePaint();
 		});
 		
@@ -140,6 +164,7 @@ public class ViewEditInsertGrid {
 		
 		heightSpinner.valueProperty().addListener(e -> {
 			grid.setHeight(heightSpinner.getValue());
+			save = true;
 			rePaint();
 		});
 		
@@ -165,6 +190,7 @@ public class ViewEditInsertGrid {
 					else
 						grid.addSquare(x, y);
 				}
+				save = true;
 				dragged = false;
 				rePaint();
 			}
@@ -195,7 +221,7 @@ public class ViewEditInsertGrid {
 		borderPane.setBottom(bottomHBox);
 		
 		window.widthProperty().addListener(e -> {
-			topHBox.setSpacing((window.getWidth() - 367)
+			topHBox.setSpacing((window.getWidth() - 467)
 					/ (topHBox.getChildren().size() - 1) + 10);
 			
 			bottomHBox.setSpacing((window.getWidth() - 475)
@@ -203,10 +229,10 @@ public class ViewEditInsertGrid {
 		});
 		
 		window.setOnCloseRequest(e -> {
-			if (!originalGrid.equals(grid)) {
+			if (save) {
 				Alert alert = new Alert(
 						AlertType.CONFIRMATION,
-						"Would you like to save changes to " + grid.getName() + "?",
+						"Would you like to save your progress?",
 						javafx.scene.control.ButtonType.YES,
 						javafx.scene.control.ButtonType.NO,
 						javafx.scene.control.ButtonType.CANCEL);
@@ -214,56 +240,37 @@ public class ViewEditInsertGrid {
 				alert.showAndWait();
 				
 				if (alert.getResult() == javafx.scene.control.ButtonType.YES) {
-
-					if (grid.getArray().isEmpty()) {
-						Alert alert1 = new Alert(
-								AlertType.ERROR,
-								"Cannot have a blank Grid.",
-								javafx.scene.control.ButtonType.OK);
-						
-						alert1.showAndWait();
-					}
-					else if (nameField.getText().isEmpty()) {
-						Alert alert1 = new Alert(
-								AlertType.ERROR,
-								"Cannot have a blank name.",
-								javafx.scene.control.ButtonType.OK);
-						
-						alert1.showAndWait();
-					}
-					else {
-						grid.setWidth(widthSpinner.getValue());
-						grid.setHeight(heightSpinner.getValue());
-						grid.setName(nameField.getText());
-						originalGrid = grid;
-						grid = originalGrid.clone();
-					}
+					
+					grid.setWidth(widthSpinner.getValue());
+					grid.setHeight(heightSpinner.getValue());
+					grid.setName(nameField.getText());
+					originalGrid = grid;
+					save = true;
 				}
+				
 				else if (alert.getResult() == javafx.scene.control.ButtonType.CANCEL)
 					e.consume();
+				
+				else 
+					save = false;
 			}
-			else if (grid.getArray().isEmpty()) {
-				Alert alert1 = new Alert(
+			else if   ((nameField.getText().isEmpty() || grid.getArray().isEmpty())
+					|| (nameField.getText().isEmpty() && grid.getArray().isEmpty())) {
+				
+				Alert alert = new Alert(
 						AlertType.ERROR,
-						"Cannot have a blank Grid.",
+						"Invalid entries. Grid and Name cannot be empty.",
 						javafx.scene.control.ButtonType.OK);
 				
-				alert1.showAndWait();
-			}
-			else if (nameField.getText().isEmpty()) {
-				Alert alert1 = new Alert(
-						AlertType.ERROR,
-						"Cannot have a blank name.",
-						javafx.scene.control.ButtonType.OK);
-				
-				alert1.showAndWait();
+				alert.showAndWait();
+				e.consume();
 			}
 			else {
 				grid.setWidth(widthSpinner.getValue());
 				grid.setHeight(heightSpinner.getValue());
 				grid.setName(nameField.getText());
 				originalGrid = grid;
-				grid = originalGrid.clone();
+				save = true;
 			}
 		});
 		
@@ -272,6 +279,10 @@ public class ViewEditInsertGrid {
 		window.showAndWait();
 	}
 	
+	public boolean isSave() {
+		return save;
+	}
+
 	public Grid getGrid() {
 		return grid;
 	}
@@ -285,15 +296,22 @@ public class ViewEditInsertGrid {
 		
 		canvas.setWidth (grid.getWidth()  * resolution);
 		canvas.setHeight(grid.getHeight() * resolution);
-//		window.setMinWidth ((grid.getWidth()  * resolution + 100) > 750 
-//				? grid.getWidth() * resolution + 100 : 750);
-//		window.setMinHeight(grid.getHeight() * resolution + 200);
+		window.setMinWidth((grid.getWidth()  * resolution + 60) > 467 
+				? grid.getWidth() * resolution + 100 : 467);
+		window.setMinHeight(grid.getHeight() * resolution + 150);
 		
-//		topHBox   .setSpacing((window.getWidth() - 750) / 6 + 13);
-//		bottomHBox.setSpacing((window.getWidth() - 750) / 7 + 10);
+		topHBox.setSpacing((window.getWidth() - 467)
+				/ (topHBox.getChildren().size() - 1) + 10);
+		
+		bottomHBox.setSpacing((window.getWidth() - 475)
+				/ (bottomHBox.getChildren().size() - 1) + 35);
 		
 		gc.setFill(Color.WHITESMOKE);
-		gc.fillRect(0, 0, grid.getWidth() * resolution, grid.getHeight() * resolution);
+		gc.fillRect(
+				0,
+				0,
+				grid.getWidth() * resolution,
+				grid.getHeight() * resolution);
 		
 		//Squares
 		gc.setFill(Color.BLACK);

@@ -9,6 +9,7 @@ import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 import com.leopoldmarx.thegameoflife.driver.Program;
 import com.leopoldmarx.thegameoflife.grid.Grid;
@@ -29,10 +30,10 @@ public class FileManager {
 		String os = System.getProperty("os.name").toLowerCase();
 		
 		if (os.contains("win"))
-			insertLocation = Paths.get(System.getenv("APPDATA") + "\\The Game of Life\\Insert.inrt");
+			insertLocation = Paths.get(System.getenv("APPDATA") + "\\The Game of Life");
 
 		else if (os.contains("mac"))
-			insertLocation = Paths.get(System.getProperty("user.home") + "/Library/Application Support/The Game of Life/Insert.inrt");
+			insertLocation = Paths.get(System.getProperty("user.home") + "/Library/Application Support/The Game of Life");
 
 		else if (os.contains("nix") || os.contains("nux") || os.contains("aix")) 
 			insertLocation = Paths.get(System.getProperty("user.home"));
@@ -70,48 +71,54 @@ public class FileManager {
 		}
 	}
 	
+	@SuppressWarnings("resource")
 	public Insert openInsert() {
 		locateInsert();
 		if (Files.exists(insertLocation)) {
-			String file = insertLocation.toString();
+			
+			File folder = insertLocation.toFile();
+			File[] listOfFiles = folder.listFiles();
+			
+			ArrayList<Grid> insert = new ArrayList<>();
 			try{
-				@SuppressWarnings("resource")
-				ObjectInputStream in = new ObjectInputStream(
-						new FileInputStream(file));
-				return (Insert) in.readObject();
-			}catch(IOException ex){
-				ex.printStackTrace();
-			}catch(ClassNotFoundException ex){
-				ex.printStackTrace();
+				
+				for (File listOfFile : listOfFiles) {
+				
+					ObjectInputStream in = new ObjectInputStream(
+							new FileInputStream(listOfFile));
+					insert.add((Grid) in.readObject());
+				}
+				Insert i = new Insert();
+				i.setArray(insert);
+				return i;
 			}
+			catch(Exception e) {e.printStackTrace();}
 		}
-		else
+		else {
+			insertLocation.toFile().mkdir();
 			return new Insert();
-		
+		}
 		return null;
 	}
 	
 	public void saveInsert() {
-		String file = insertLocation.toString()
-				.replace("/Insert.inrt", "")
-				.replace("\\Insert.inrt", "");
-		if (Files.exists(Paths.get(file))) {
-			try{
+		
+		insertLocation.toFile().delete();
+		insertLocation.toFile().mkdir();
+		
+		try{
+			for (Grid g : Program.getInstance().getInsert().getArray()) {
 				ObjectOutputStream out = new ObjectOutputStream(
 						new FileOutputStream(
-								insertLocation.toFile()));
-				out.writeObject(Program.getInstance().getInsert());
+								insertLocation.toString() 
+								+ "/" + g.getName() + ".tgof"));
+				out.writeObject(g);
 				out.close();
-			}catch(IOException ex){
-				ex.printStackTrace();
-			}
+			}	
+		}catch(IOException ex){
+			ex.printStackTrace();
 		}
-		else {
-			File f = new File(file);
-			f.mkdir();
-			
-			saveInsert();
-		}
+		
 	}
 
 	public Path getLocation() {

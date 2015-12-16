@@ -193,10 +193,73 @@ public class Insert implements Serializable{
 	}
 	
 	public Grid pulsar() {
-		//TODO Pulsar
-		Grid g = new Grid();
+		Grid g = new Grid(13, 13);
 		
 		g.setName("Pulsar");
+		
+		g.addSquare(2, 0);
+		g.addSquare(3, 0);
+		g.addSquare(4, 0);
+		
+		g.addSquare(0, 2);
+		g.addSquare(0, 3);
+		g.addSquare(0, 4);
+		
+		g.addSquare(5, 2);
+		g.addSquare(5, 3);
+		g.addSquare(5, 4);
+		
+		g.addSquare(2, 5);
+		g.addSquare(3, 5);
+		g.addSquare(4, 5);
+		
+		g.addSquare(8, 0);
+		g.addSquare(9, 0);
+		g.addSquare(10, 0);
+		
+		g.addSquare(7, 2);
+		g.addSquare(7, 3);
+		g.addSquare(7, 4);
+		
+		g.addSquare(12, 2);
+		g.addSquare(12, 3);
+		g.addSquare(12, 4);
+		
+		g.addSquare(8, 5);
+		g.addSquare(9, 5);
+		g.addSquare(10, 5);
+		
+		g.addSquare(2, 7);
+		g.addSquare(3, 7);
+		g.addSquare(4, 7);
+		
+		g.addSquare(0, 8);
+		g.addSquare(0, 9);
+		g.addSquare(0, 10);
+		
+		g.addSquare(2, 12);
+		g.addSquare(3, 12);
+		g.addSquare(4, 12);
+		
+		g.addSquare(5, 8);
+		g.addSquare(5, 9);
+		g.addSquare(5, 10);
+		
+		g.addSquare(7, 8);
+		g.addSquare(7, 9);
+		g.addSquare(7, 10);
+		
+		g.addSquare(12, 8);
+		g.addSquare(12, 9);
+		g.addSquare(12, 10);
+		
+		g.addSquare(8, 7);
+		g.addSquare(9, 7);
+		g.addSquare(10, 7);
+		
+		g.addSquare(8, 12);
+		g.addSquare(9, 12);
+		g.addSquare(10, 12);
 		
 		return g;
 	}
