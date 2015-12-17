@@ -278,6 +278,7 @@ public class ViewMain extends Application implements Runnable {
 		clearButton.setRipplerFill(Color.STEELBLUE);
 		
 		clearButton.setOnAction(e -> {
+			location = null;
 			grid.getArray().clear();
 			grid.setGenerations(0);
 			totalGenerationsLabel.setText(
@@ -397,6 +398,7 @@ public class ViewMain extends Application implements Runnable {
 						KeyCode.N, KeyCombination.CONTROL_DOWN));
 		
 		newMenuItem.setOnAction(e -> {
+			location = null;
 			grid.getArray().clear();
 			grid.setGenerations(0);
 			totalGenerationsLabel.setText(
