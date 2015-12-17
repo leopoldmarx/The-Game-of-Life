@@ -111,20 +111,6 @@ public class ViewEditInsert {
 		window.widthProperty().addListener(e ->
 				bottomHBox.setSpacing(window.getWidth() - 160 - 20 - 75));
 		
-		window.heightProperty().addListener(e -> {
-			Set<Node> nodes = scrollPane.lookupAll(".scroll-bar");
-	        for (final Node node : nodes) {
-	            if (node instanceof ScrollBar) {
-	                ScrollBar sb = (ScrollBar) node;
-	                if (sb.getOrientation() == Orientation.HORIZONTAL) {
-	                    System.out.println("horizontal scrollbar visible = " + sb.isVisible());
-	                    System.out.println("width = " + sb.getWidth());
-	                    System.out.println("height = " + sb.getHeight());
-	                }
-	            }
-	        }
-		});
-		
 		borderPane.setCenter(scrollPane);
 		borderPane.setBottom(vBox);
 		

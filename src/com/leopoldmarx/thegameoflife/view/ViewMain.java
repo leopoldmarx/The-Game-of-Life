@@ -485,8 +485,10 @@ public class ViewMain extends Application implements Runnable {
 			for (Grid g : insert.getArray()) {
 				MenuItem mi = new MenuItem(g.getName());
 				
-				mi.setOnAction(e1 -> 
-						hoverGrid = g);
+				mi.setOnAction(e1 -> {
+					hoverGrid = g;
+					rePaint();
+				});
 				
 				insertMenu.getItems().add(mi);
 			}
