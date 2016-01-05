@@ -63,6 +63,7 @@ public class ViewMain extends Application implements Runnable {
 	
 	private int oldX, oldY;
 	private boolean dragged = false;
+	private boolean touch = false;
 	
 	private Timeline timeline;
 	
@@ -339,7 +340,7 @@ public class ViewMain extends Application implements Runnable {
 		});
 		
 		canvas.setOnMouseClicked(e -> {
-			if (hoverGrid != null) {
+			if (hoverGrid != null && touch == false) {
 				if (e.getButton().toString().equals("PRIMARY")){
 					for (Square s : hoverGrid.getArray()) 
 						grid.addSquare(
@@ -355,7 +356,9 @@ public class ViewMain extends Application implements Runnable {
 				
 				rePaint();
 			}
-			else {
+			else if (hoverGrid != null && touch == true) //
+				System.out.println("Test");
+			else{
 				if (e.getButton().toString().equals("PRIMARY")) {
 					if (!dragged){
 						int x = (int) (e.getX() / grid.getResolution());
@@ -373,7 +376,8 @@ public class ViewMain extends Application implements Runnable {
 		});
 		
 		canvas.setOnMouseDragged(e -> {
-			if (e.getButton().toString().equals("PRIMARY")) {
+			//System.out.println("Mouse dragged");
+			if (e.getButton().toString().equals("PRIMARY") && hoverGrid == null) {
 				dragged = true;
 				
 				int x = (int) (e.getX() / grid.getResolution());
@@ -390,6 +394,31 @@ public class ViewMain extends Application implements Runnable {
 				oldY = y;
 				rePaint();
 			}
+			
+			else if (hoverGrid != null) {
+				if (e.getX() != mouseX && e.getY() != mouseY) {
+					mouseX = e.getX();
+					mouseY = e.getY();
+					rePaint();
+				}
+			}
+		});
+		
+		canvas.setOnTouchPressed(e -> {
+			System.out.println("Touch pressed");
+			touch = true;
+		});
+		
+		canvas.setOnTouchMoved(e -> { 
+			if (hoverGrid != null) {
+				System.out.println("Touch moved" + touch);
+				rePaint();
+			}
+		});
+		
+		canvas.setOnTouchReleased(e -> {
+			touch = false;
+			System.out.println("Touch releaced");
 		});
 		
 		//Menu Bar
